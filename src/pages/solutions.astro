@@ -1,0 +1,123 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const solutionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Broadcast Solutions — Digital Headend, IPTV & Wireless Transfer',
+  url: 'https://www.iptv-demo.example.com/solutions/',
+  description: 'End-to-end broadcast solutions: digital headend systems, hotel IPTV, wireless STL transfer and internet-based content distribution for broadcasters worldwide.',
+  isPartOf: { '@type': 'WebSite', name: 'IPTVStream Broadcast', url: 'https://www.iptv-demo.example.com' },
+};
+
+const solutions = [
+  {
+    id: 'digital-headend',
+    icon: 'fas fa-building',
+    title: 'Digital Headend Solution',
+    desc: 'Complete headend systems with encoders, modulators, multiplexers and IP gateways for DVB-C/T/S, ATSC and ISDB-T standards.',
+    points: ['DVB-S/S2/S2X to DVB-C/T/ISDB-T transmodulation', 'MPEG-2 / H.264 / H.265 encoding', 'Multi-channel multiplexing & scrambling', 'Centralized management software'],
+    products: ['IPTV Gateway', 'HD Encoder', 'QAM Modulator'],
+  },
+  {
+    id: 'iptv',
+    icon: 'fas fa-hotel',
+    title: 'IPTV Solution',
+    desc: 'Turnkey IPTV systems for hotels, hospitals, schools, cruise ships and ISP communities with VOD and multi-language support.',
+    points: ['All-in-one IPTV gateway servers', 'Set-top boxes with remote control', 'VOD library & EPG management', 'Multi-language guest interfaces'],
+    products: ['FBE700 Gateway', 'FBE013 STB Kit', 'Hotel IPTV System'],
+  },
+  {
+    id: 'wireless',
+    icon: 'fas fa-wifi',
+    title: 'Wireless Transfer Solution',
+    desc: 'STL links and wireless video transfer over 5.8 GHz for studio-to-transmitter connectivity without cables.',
+    points: ['5.8 GHz digital HD video links', 'Point-to-point and point-to-multipoint', 'HDMI / CVBS / AES-EBU inputs', '10+ km transmission range'],
+    products: ['DSTL-10 Wireless STL', 'STL10 Link Kit'],
+  },
+  {
+    id: 'internet',
+    icon: 'fas fa-globe',
+    title: 'Internet Transfer Solution',
+    desc: 'TCP/IP accelerated satellite modems and IP-based content distribution for global broadcast networks.',
+    points: ['Satellite Ethernet modems', 'IP content distribution', 'High-speed broadband acceleration', 'Global network integration'],
+    products: ['Satellite Modem', 'SFN Network Solution'],
+  },
+];
+
+const breadcrumbs = [{ name: 'Solutions', url: '/solutions/' }];
+---
+
+<Layout
+  title="Broadcast Solutions — Digital Headend, IPTV & Wireless Transfer | IPTVStream Broadcast"
+  description="Explore our end-to-end broadcast solutions: digital headend systems, hotel IPTV, wireless STL transfer and internet distribution. Tailored systems for broadcasters worldwide."
+  schema={solutionSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- ===== 页面标题 ===== -->
+  <section class="relative bg-[#f5f5f7] py-16 lg:py-24 text-center border-b border-[#e8e8ed] overflow-hidden" aria-label="Solutions overview">
+    <img src="/images/general/channels-banner.jpg" alt="" aria-hidden="true" loading="lazy"
+      class="absolute inset-0 w-full h-full object-cover opacity-[0.06]" />
+    <div class="relative container mx-auto max-w-3xl px-4">
+      <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Solutions</p>
+      <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">End-to-End <span class="gradient-text">Broadcast</span> Solutions</h1>
+      <p class="text-[#6e6e73] text-lg">Complete end-to-end solutions tailored for every broadcasting scenario.</p>
+    </div>
+  </section>
+
+  <!-- ===== 解决方案列表 ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Solution details">
+    <div class="container mx-auto max-w-7xl px-4 space-y-20">
+      {
+        solutions.map((s) => (
+          <div id={s.id} class="grid lg:grid-cols-2 gap-12 items-center reveal">
+            <div class={s.id === 'iptv' || s.id === 'internet' ? 'lg:order-2' : ''}>
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 bg-gradient-to-br from-[#0071e3] to-[#0a84ff] text-white rounded-xl inline-flex items-center justify-center shrink-0">
+                  <i class={`${s.icon} text-lg`}></i>
+                </div>
+                <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f]">{s.title}</h2>
+              </div>
+              <p class="text-[#6e6e73] text-lg leading-relaxed mb-6">{s.desc}</p>
+              <ul class="space-y-3 mb-8">
+                {
+                  s.points.map((pt) => (
+                    <li class="flex gap-3 text-[#6e6e73]"><i class="fas fa-check-circle text-[#0071e3] mt-0.5"></i>{pt}</li>
+                  ))
+                }
+              </ul>
+              <a href="/contact/" class="btn-primary"><i class="fas fa-paper-plane"></i> Request This Solution</a>
+            </div>
+            <div class={`bg-[#f5f5f7] rounded-3xl border border-[#e8e8ed] p-8 ${s.id === 'iptv' || s.id === 'internet' ? 'lg:order-1' : ''}`}>
+              <h3 class="text-sm font-bold text-[#1d1d1f] uppercase tracking-wider mb-5">Recommended Products</h3>
+              <div class="space-y-3">
+                {
+                  s.products.map((p) => (
+                    <div class="bg-white rounded-xl border border-[#e8e8ed] px-5 py-4 flex items-center gap-3 card-hover">
+                      <i class="fas fa-tower-broadcast text-[#0071e3] text-sm"></i>
+                      <span class="font-medium text-[#1d1d1f] text-sm">{p}</span>
+                    </div>
+                  ))
+                }
+              </div>
+              <div class="mt-6 bg-[#0071e3]/5 rounded-xl px-5 py-4 text-sm text-[#6e6e73]">
+                <i class="fas fa-lightbulb text-[#0071e3] mr-2"></i>Need a custom system? Our engineers design solutions around your exact requirements.
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Get a custom solution">
+    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Need a Custom <span class="gradient-text">Solution?</span></h2>
+      <p class="text-[#6e6e73] text-lg mb-8">Contact our engineering team today for a free consultation and tailored proposal for your broadcast needs.</p>
+      <a href="/contact/" class="btn-primary text-base px-10 py-4">
+        <i class="fas fa-comments"></i> Talk to Our Engineers
+      </a>
+    </div>
+  </section>
+</Layout>

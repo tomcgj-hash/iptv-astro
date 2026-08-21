@@ -1,0 +1,128 @@
+---
+// Layout.astro — 全站公共布局
+// 规则要求：Tailwind CDN、Font Awesome、jQuery、header/footer 模块化 fetch 引入
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  schema?: object; // JSON-LD schema 对象（符合 SEO 要求）
+  breadcrumbs?: { name: string; url: string }[]; // 面包屑
+}
+
+const {
+  title = 'Professional Digital TV Headend Equipment Manufacturer | IPTVStream Broadcast',
+  description = 'IPTVStream Broadcast is a professional digital TV headend equipment manufacturer from China. Factory-direct encoders, modulators, IP gateways, multiplexers, transmitters and antennas for broadcasters worldwide.',
+  schema,
+  breadcrumbs,
+} = Astro.props;
+
+// 默认 WebSite schema（SEO）
+const siteSchema = schema || {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'IPTVStream Broadcast',
+  url: Astro.site?.toString() || 'https://www.iptv-demo.example.com',
+  description,
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="canonical" href={Astro.site ? new URL(Astro.url.pathname, Astro.site).toString() : undefined} />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script is:inline src="https://cdn.tailwindcss.com"></script>
+    <script is:inline>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2563eb',
+              ink: '#1e293b',
+              sand: '#f8fafc',
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- SEO: JSON-LD Schema -->
+    <script type="application/ld+json" set:html={JSON.stringify(siteSchema)}></script>
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={Astro.site ? new URL(Astro.url.pathname, Astro.site).toString() : undefined} />
+    <meta property="og:image" content="/images/logo.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/images/logo.svg" />
+
+    <!-- Pagefind 自定义 meta（供搜索结果展示缩略图等） -->
+    {
+      Astro.props.image && (
+        <meta name="pagefind-meta-image" content={Astro.props.image} />
+      )
+    }
+    {
+      Astro.props.category && (
+        <meta name="pagefind-meta-category" content={Astro.props.category} />
+      )
+    }
+  </head>
+  <body class="flex min-h-screen flex-col text-slate-900 antialiased">
+    <!-- 公共头部占位符（由 js/main.js fetch 引入 header.html） -->
+    <div id="header"></div>
+
+    <!-- 面包屑导航（可选） -->
+    {
+      breadcrumbs && breadcrumbs.length > 0 && (
+        <nav class="bg-slate-50 border-b border-slate-100" aria-label="Breadcrumb">
+          <div class="container mx-auto max-w-7xl px-4 py-3">
+            <ol class="breadcrumb">
+              <li><a href="/"><i class="fas fa-home mr-1"></i>Home</a></li>
+              {breadcrumbs.map((crumb, i) => (
+                <>
+                  <li class="sep"><i class="fas fa-chevron-right text-xs"></i></li>
+                  {i === breadcrumbs.length - 1 ? (
+                    <li aria-current="page" class="text-slate-500">{crumb.name}</li>
+                  ) : (
+                    <li><a href={crumb.url}>{crumb.name}</a></li>
+                  )}
+                </>
+              ))}
+            </ol>
+          </div>
+        </nav>
+      )
+    }
+
+    <!-- 主内容 -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- 公共页脚占位符（由 js/main.js fetch 引入 footer.html） -->
+    <div id="footer"></div>
+
+    <!-- jQuery (本地文件) -->
+    <script is:inline src="/js/jquery-2.2.4.min.js"></script>
+    <!-- 全站公共脚本 -->
+    <script is:inline src="/js/main.js"></script>
+  </body>
+</html>

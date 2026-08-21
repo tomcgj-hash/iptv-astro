@@ -1,0 +1,424 @@
+/* ============================================================
+   css/style.css — 自定义样式（尽量使用 Tailwind，这里只放必要的）
+   IPTV 官网 · V4 明亮白色 + 蓝紫粉鲜艳渐变（Spotify/Framer 风）
+   ============================================================ */
+
+/* ---------- 全局基础 ---------- */
+:root {
+  --color-primary: #0071e3;      /* Apple 蓝 */
+  --color-primary-2: #0077ed;    /* Apple 蓝 hover */
+  --color-accent: #0071e3;       /* Apple 蓝 */
+  --color-cyan: #0071e3;         /* Apple 蓝 */
+  --color-bg: #ffffff;           /* 纯白底 */
+  --color-surface: #ffffff;      /* 卡片表面 */
+  --color-surface-2: #f5f5f7;    /* 浅灰表面（Apple） */
+  --color-border: #e8e8ed;
+  --color-text: #1d1d1f;         /* 深色主文字（Apple） */
+  --color-text-2: #6e6e73;       /* 次级文字（Apple） */
+  --color-text-3: #86868b;       /* 弱化文字（Apple） */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  /* 顶部淡淡的 Apple 蓝氛围光 */
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(0, 113, 227, 0.07), transparent),
+    radial-gradient(ellipse 40% 30% at 100% 0%, rgba(90, 200, 250, 0.05), transparent),
+    radial-gradient(ellipse 40% 30% at 0% 0%, rgba(10, 132, 255, 0.05), transparent);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(0, 113, 227, 0.15);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0071e3;
+}
+
+/* ---------- 顶部菜单固定 ---------- */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid transparent;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.site-header.scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-color: rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+
+body.has-fixed-header {
+  padding-top: 72px;
+}
+
+/* ---------- 多级下拉菜单 ---------- */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  min-width: 230px;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12);
+  padding: 0.5rem 0;
+  z-index: 60;
+}
+
+.nav-item:hover > .dropdown-menu,
+.nav-item:focus-within > .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu .dropdown-menu {
+  left: 100%;
+  top: -0.5rem;
+}
+
+.dropdown-item {
+  position: relative;
+}
+
+.dropdown-item > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--color-text-2);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item > a:hover {
+  background-color: rgba(0, 113, 227, 0.06);
+  color: var(--color-primary);
+}
+
+/* ---------- 按钮（胶囊 + 渐变） ---------- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #0071e3;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.25);
+}
+
+.btn-primary:hover {
+  background: #0077ed;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 113, 227, 0.35);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #e8e8ed;
+  color: var(--color-text);
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: #dcdce1;
+  transform: translateY(-2px);
+}
+
+/* ---------- 面包屑 ---------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-3);
+}
+
+.breadcrumb a {
+  color: var(--color-text-2);
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.breadcrumb .sep {
+  color: #cbd5e1;
+}
+
+/* ---------- 移动端底部导航栏 ---------- */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 55;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 0 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+  flex: 1;
+}
+
+.mobile-nav-item.active {
+  color: #0071e3;
+}
+
+.mobile-nav-item.active i {
+  transform: translateY(-1px);
+}
+
+/* 仅移动端显示（<1024px） */
+@media (max-width: 1023px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+  /* 给 body 底部留出空间，避免内容被底部导航遮挡 */
+  body.has-fixed-header {
+    padding-bottom: 62px;
+  }
+}
+
+/* ---------- 移动端菜单 ---------- */
+.mobile-menu {
+  display: none;
+  background: #fff;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile-menu.open {
+  display: block;
+}
+
+.mobile-menu a {
+  color: var(--color-text-2);
+}
+
+.mobile-menu a:hover {
+  color: var(--color-primary);
+  background: rgba(0, 113, 227, 0.05);
+}
+
+@media (min-width: 1024px) {
+  .mobile-menu {
+    display: none !important;
+  }
+}
+
+/* ---------- 动画 ---------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeInUp 0.9s ease both;
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 2.4s ease-in-out infinite;
+}
+
+@keyframes floatY {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: floatY 5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+.animate-glow {
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+/* ---------- 卡片 ---------- */
+.card-hover {
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  border-color: rgba(0, 113, 227, 0.3) !important;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.1);
+}
+
+/* ---------- 滚动渐入（reveal） ----------
+   配合 main.js 的 IntersectionObserver 使用 */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  will-change: opacity, transform;
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 频道墙横向滚动容器 */
+.channel-row {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4f0 transparent;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.channel-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.channel-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.channel-row::-webkit-scrollbar-thumb {
+  background: #ddd6fe;
+  border-radius: 3px;
+}
+
+/* ---------- 渐变文字 ---------- */
+.gradient-text {
+  background: linear-gradient(135deg, #0071e3 0%, #0a84ff 50%, #5ac8fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ---------- 服务条款 / 隐私页共用样式 ----------
+   注意：内容由后台编辑，p/h 等标签不带 class，样式统一定义在此 */
+.policy-content h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.policy-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.policy-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
+}
+
+.policy-content p {
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+  color: var(--color-text-2);
+}
+
+.policy-content ul,
+.policy-content ol {
+  margin: 0 0 1.25rem 1.5rem;
+  line-height: 1.8;
+  color: var(--color-text-2);
+}
+
+.policy-content li {
+  margin-bottom: 0.5rem;
+}
+
+.policy-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.policy-content strong {
+  color: var(--color-text);
+}

@@ -1,0 +1,62 @@
+---
+// 退款政策页 — 按 privacy.md 规则：模板页面，只有标题和内容不一样
+// 内容由后台编辑，p/h 标签不带 class，样式在 css/style.css 的 .policy-content
+import Layout from '../layouts/Layout.astro';
+
+const refundSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Refund Policy — IPTVStream',
+  url: 'https://www.iptv-demo.example.com/refund/',
+  description: 'Read the IPTVStream refund policy: 7-day money-back guarantee on all new purchase orders.',
+};
+
+const breadcrumbs = [{ name: 'Refund Policy', url: '/refund/' }];
+---
+
+<Layout
+  title="Refund Policy | IPTVStream"
+  description="IPTVStream offers a 7-day money-back guarantee on all new purchase orders. Read our full refund policy here."
+  schema={refundSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <section class="py-14 lg:py-20 bg-white" aria-label="Refund policy">
+    <div class="container mx-auto max-w-3xl px-4">
+      <!-- 内容由后台编辑，不带 class，样式在 css/style.css -->
+      <div class="policy-content">
+        <h1>Refund Policy</h1>
+        <p><time datetime="2026-01-01">Last updated: January 1, 2026</time></p>
+
+        <h2>7-Day Money-Back Guarantee</h2>
+        <p>
+          Every new IPTVStream purchase order is covered by our 7-day money-back guarantee. If you are not
+          satisfied with the service for any reason within 7 days of your purchase, contact our support team
+          and we will issue a full refund — no questions asked.
+        </p>
+
+        <h2>How to Request a Refund</h2>
+        <p>To request a refund, simply:</p>
+        <ol>
+          <li>Contact our support team by email or WhatsApp.</li>
+          <li>Provide your account email address and order details.</li>
+          <li>Tell us what went wrong — your feedback helps us improve.</li>
+        </ol>
+        <p>Refund requests are processed within 5–10 business days and the amount is returned to your original payment method.</p>
+
+        <h2>Exceptions</h2>
+        <p>The following cases are not eligible for a refund:</p>
+        <ul>
+          <li>Subscriptions purchased more than 7 days ago.</li>
+          <li>Renewal charges after the guarantee period, unless the service was unavailable.</li>
+          <li>Violations of our Terms of Service, including account sharing beyond the allowed connections.</li>
+        </ul>
+
+        <h2>Contact Us</h2>
+        <p>
+          Questions about refunds? Contact us at
+          <a href="mailto:sales@coaxtoiptv.com">sales@coaxtoiptv.com</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

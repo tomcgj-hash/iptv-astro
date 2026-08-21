@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.iptv-demo.example.com/sitemap-index.xml

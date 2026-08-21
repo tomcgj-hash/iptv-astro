@@ -1,0 +1,183 @@
+<!-- ============================================================
+  header.html — 公共头部（模块化独立文件）V4 明亮白色
+  由 js/main.js 用 fetch 动态引入，占位符 <div id="header"></div>
+  支持一级 / 二级 / 三级菜单，滚动时固定（白色磨砂玻璃）
+  ============================================================ -->
+<header class="site-header">
+  <div class="container mx-auto max-w-7xl px-4">
+    <div class="flex items-center justify-between h-[72px]">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2.5 shrink-0" aria-label="IPTVStream - Home">
+        <img src="/images/logo.svg" alt="IPTVStream logo" width="40" height="40" class="w-10 h-10">
+        <span class="text-xl font-bold text-slate-900 tracking-tight">IPTV<span class="gradient-text">Stream</span></span>
+      </a>
+
+      <!-- 桌面端导航（一级/二级/三级菜单） -->
+      <nav class="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+        <!-- 一级菜单 -->
+        <div class="nav-item relative">
+          <a href="/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">Home</a>
+        </div>
+
+        <!-- 一级菜单：Products -->
+        <div class="nav-item relative">
+          <a href="/products/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            Products <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+          </a>
+          <div class="dropdown-menu">
+            <div class="dropdown-item">
+              <a href="/products/">All Products</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-fm-transmitters">FM Transmitters</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-am-transmitters">AM Transmitters</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-tv-transmitters">TV Transmitters</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-antennas">Antennas</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-iptv">IPTV &amp; Streaming</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-filters">Filters &amp; Combiners</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/products/#cat-rf-load">RF Dummy Loads</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 一级菜单：Blog -->
+        <div class="nav-item relative">
+          <a href="/blog/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            Blog <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+          </a>
+          <div class="dropdown-menu">
+            <div class="dropdown-item">
+              <a href="/blog/">All Articles</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/blog/how-to-choose-best-iptv-service-2026/">How to Choose IPTV</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/blog/how-to-set-up-iptv-fire-stick-smart-tv-android/">IPTV Setup Guides</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/blog/iptv-buffering-causes-and-fixes/">Fix IPTV Buffering</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/blog/fm-transmitters-explained-50w-vs-5kw/">FM Transmitter Guide</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 一级菜单：Solutions -->
+        <div class="nav-item relative">
+          <a href="/solutions/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            Solutions <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+          </a>
+          <div class="dropdown-menu">
+            <div class="dropdown-item">
+              <a href="/solutions/#digital-headend">Digital Headend</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/solutions/#iptv">IPTV Solution</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/solutions/#wireless">Wireless Transfer</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/solutions/#internet">Internet Transfer</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 一级菜单：Contact（独立入口） -->
+        <div class="nav-item relative">
+          <a href="/contact/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            Contact
+          </a>
+        </div>
+
+        <!-- 二级菜单：Support -->
+        <div class="nav-item relative">
+          <a href="/faq/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            Support <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+          </a>
+          <div class="dropdown-menu">
+            <div class="dropdown-item">
+              <a href="/faq/">FAQ</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/about/">About Us</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/terms/">Terms of Service</a>
+            </div>
+            <div class="dropdown-item">
+              <a href="/privacy/">Privacy Policy</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- 右侧操作按钮 -->
+      <div class="flex items-center gap-3">
+        <!-- 搜索入口 -->
+        <a href="/search/" class="inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 hover:bg-[#f5f5f7] rounded-full transition-colors" aria-label="Search">
+          <i class="fas fa-magnifying-glass text-base"></i>
+        </a>
+        <a href="/contact/" class="hidden sm:inline-flex items-center gap-2 btn-primary text-[15px] px-6 py-2.5">
+          <i class="fas fa-paper-plane"></i> Get a Quote
+        </a>
+        <!-- 移动端汉堡按钮 -->
+        <button type="button" class="lg:hidden inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 rounded-lg" id="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu lg:hidden pb-4" id="mobile-menu">
+      <a href="/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Home</a>
+      <a href="/products/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Products</a>
+      <a href="/solutions/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Solutions</a>
+      <a href="/faq/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">FAQ</a>
+      <a href="/contact/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Contact Us</a>
+      <a href="/search/" class="block px-4 py-3 text-[15px] font-medium rounded-lg border-t border-[#e8e8ed] mt-2">
+        <i class="fas fa-magnifying-glass mr-2 text-[#0071e3]"></i>Search
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- 移动端底部导航栏（仅手机/平板显示，桌面隐藏）
+     注意：必须放在 <header> 标签之外，因为 .site-header 的
+     backdrop-filter 会创建定位上下文，导致 fixed 定位失效 -->
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <a href="/" class="mobile-nav-item" data-nav="/">
+    <i class="fas fa-house text-lg"></i>
+    <span>Home</span>
+  </a>
+  <a href="/products/" class="mobile-nav-item" data-nav="/products/">
+    <i class="fas fa-box text-lg"></i>
+    <span>Products</span>
+  </a>
+  <a href="/solutions/" class="mobile-nav-item" data-nav="/solutions/">
+    <i class="fas fa-diagram-project text-lg"></i>
+    <span>Solutions</span>
+  </a>
+  <a href="/blog/" class="mobile-nav-item" data-nav="/blog/">
+    <i class="fas fa-newspaper text-lg"></i>
+    <span>Blog</span>
+  </a>
+  <a href="/contact/" class="mobile-nav-item" data-nav="/contact/">
+    <i class="fas fa-envelope text-lg"></i>
+    <span>Contact</span>
+  </a>
+</nav>

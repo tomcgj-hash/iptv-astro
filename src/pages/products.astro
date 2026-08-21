@@ -1,0 +1,133 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { PRODUCTS, CAT_NAMES } from '../data/products';
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Broadcast Equipment — FM/AM/TV Transmitters, Antennas & IPTV Solutions',
+  url: 'https://www.iptv-demo.example.com/products/',
+  description: 'Browse our complete broadcast equipment lineup: FM/AM/TV transmitters, antennas, cavity filters, combiners, IPTV systems, fiber optics and RF accessories.',
+  isPartOf: { '@type': 'WebSite', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+};
+
+// 按分类分组
+const categories = [...new Set(PRODUCTS.map((p) => p.category))];
+const catNames = CAT_NAMES;
+
+// 图片尺寸 helper：卡片用 400px WebP 缩略图
+const thumbOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp');
+
+const breadcrumbs = [{ name: 'Products', url: '/products/' }];
+---
+
+<Layout
+  title="Broadcast Equipment — Transmitters, Antennas & IPTV Solutions | IPTVStream"
+  description="Explore our broadcast equipment lineup: FM, AM and TV transmitters, broadcast antennas, cavity filters, combiners, IPTV gateways, fiber optics and RF accessories from 50W to 200KW."
+  schema={productSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- ===== 页面标题 ===== -->
+  <section class="relative bg-[#f5f5f7] py-16 lg:py-24 text-center border-b border-[#e8e8ed] overflow-hidden" aria-label="Products overview">
+    <img src="/images/general/channels-banner.jpg" alt="" aria-hidden="true" loading="lazy"
+      class="absolute inset-0 w-full h-full object-cover opacity-[0.05]" />
+    <div class="relative container mx-auto max-w-3xl px-4">
+      <p class="text-[#86868b] text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Products</p>
+      <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">Complete <span class="gradient-text">Broadcast</span> Equipment Lineup</h1>
+      <p class="text-[#6e6e73] text-lg">FM/AM/TV transmitters, antennas, IPTV systems and RF accessories — {PRODUCTS.length}+ products from 0.5W to 200KW.</p>
+    </div>
+  </section>
+
+  <!-- ===== 分类锚点导航 ===== -->
+  <section class="bg-white border-b border-[#e8e8ed] sticky top-[72px] z-30" aria-label="Category quick nav">
+    <div class="container mx-auto max-w-7xl px-4 py-3 overflow-x-auto">
+      <div class="flex gap-2 min-w-max">
+        {
+          categories.map((cat) => (
+            <a href={`#cat-${cat}`} class="shrink-0 text-xs font-semibold text-[#6e6e73] bg-[#f5f5f7] border border-[#e8e8ed] hover:border-[#0071e3] hover:text-[#0071e3] px-4 py-2 rounded-full transition-colors">
+              {CAT_NAMES[cat] || cat} ({PRODUCTS.filter((p) => p.category === cat).length})
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 数据统计条 ===== -->
+  <section class="bg-white border-b border-[#e8e8ed]" aria-label="Product statistics">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-[#e8e8ed]">
+        {
+          [
+            { num: `${PRODUCTS.length}+`, label: 'Products in Stock' },
+            { num: `${categories.length}`, label: 'Product Categories' },
+            { num: '50+', label: 'Countries Served' },
+            { num: '24h', label: 'Quote Response' },
+          ].map((s) => (
+            <div class="py-8 text-center">
+              <p class="text-2xl lg:text-3xl font-bold text-[#1d1d1f]">{s.num}</p>
+              <p class="text-xs text-[#86868b] mt-1">{s.label}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 分类产品区 ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="All products by category">
+    <div class="container mx-auto max-w-7xl px-4 space-y-20">
+      {
+        categories.map((cat) => {
+          const items = PRODUCTS.filter((p) => p.category === cat);
+          return (
+            <div id={`cat-${cat}`}>
+              <div class="flex items-end justify-between mb-8 reveal">
+                <div>
+                  <h2 class="text-2xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight">{CAT_NAMES[cat] || cat}</h2>
+                  <p class="text-[#86868b] text-sm mt-1">{items.length} products</p>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {
+                  items.map((p) => (
+                    <a href={`/products/${p.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+                      <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
+                        {
+                          p.image ? (
+                            <img src={thumbOf(p.image)} alt={p.name} loading="lazy"
+                              class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <i class="fas fa-tower-broadcast text-4xl text-[#a1a1a6] group-hover:text-[#0071e3] transition-colors"></i>
+                          )
+                        }
+                      </div>
+                      <div class="p-5">
+                        <span class="text-[11px] font-medium text-[#86868b] uppercase tracking-wide">{catNames[p.category] || p.category}</span>
+                        <h3 class="font-semibold text-[#1d1d1f] text-sm leading-snug mt-1.5 mb-3 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h3>
+                        <span class="inline-flex items-center gap-1.5 text-[#0071e3] text-xs font-medium">
+                          View Details <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                        </span>
+                      </div>
+                    </a>
+                  ))
+                }
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="py-16 lg:py-20 bg-[#f5f5f7]" aria-label="Get a quote">
+    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Need a Custom <span class="gradient-text">Solution?</span></h2>
+      <p class="text-[#6e6e73] text-lg mb-8">Tell us your requirements and we'll recommend the right products for your project.</p>
+      <a href="/contact/" class="btn-primary text-base px-10 py-4">
+        <i class="fas fa-paper-plane"></i> Get a Quote
+      </a>
+    </div>
+  </section>
+</Layout>

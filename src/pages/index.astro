@@ -1,0 +1,444 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { PRODUCTS, CAT_NAMES } from '../data/products';
+import { CAT_IMAGES } from '../data/catImages';
+import { getPosts } from '../data/posts';
+
+const latestPosts = getPosts().slice(0, 3);
+
+// 首页 schema：Organization（B2B 制造商）
+const homeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'IPTVStream Broadcast',
+  description: 'Professional digital TV headend equipment manufacturer from China. Encoders, modulators, IP gateways, multiplexers and transmitters for broadcasters worldwide.',
+  url: 'https://www.iptv-demo.example.com',
+  logo: 'https://www.iptv-demo.example.com/images/logo.svg',
+  address: { '@type': 'PostalAddress', addressCountry: 'China' },
+  areaServed: 'Worldwide',
+};
+
+// 产品分类（取主要 8 类，配质量最佳的真实产品图）
+const catFirstImage = (cat) => CAT_IMAGES[cat] || (PRODUCTS.find((x) => x.category === cat && x.image) || {}).image || '';
+// 图片尺寸 helper：卡片用 400px WebP 缩略图
+const thumbOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp');
+const topCats = [
+  { id: 'encoder', image: catFirstImage('encoder'), desc: 'HD/SD encoders from single-channel to 48-channel: H.264, H.265/HEVC, MPEG-2 and audio.' },
+  { id: 'modulator', image: catFirstImage('modulator'), desc: 'QAM, ATSC, DVB-T, ISDB-T, DVB-S2 and IP modulators from 1 to 64 channels.' },
+  { id: 'encoder-modulator', image: catFirstImage('encoder-modulator'), desc: 'All-in-one encoder modulators combining encoding and RF modulation in one unit.' },
+  { id: 'ip-gateway', image: catFirstImage('ip-gateway'), desc: 'IP gateways, streamers and IPTV gateway servers for IP-based distribution.' },
+  { id: 'ird-decoder', image: catFirstImage('ird-decoder'), desc: 'IRD receivers, decoders and transcoders for DVB-S/S2/S2X and ASI/SDI inputs.' },
+  { id: 'multiplexer', image: catFirstImage('multiplexer'), desc: 'Multiplexers, scramblers and de-multiplexers for transport stream management.' },
+  { id: 'transmitter', image: catFirstImage('transmitter'), desc: 'FM and DVB-T digital transmitters from 200W to 3KW for broadcast stations.' },
+  { id: 'other', image: catFirstImage('other'), desc: 'Headend processors, analyzers, EPG servers and more for complete headends.' },
+];
+
+// 解决方案（配真实设备图 — 从 PRODUCTS 动态选取）
+const solutions = [
+  { image: catFirstImage('multiplexer'), title: 'Digital Headend Solution', desc: 'Complete headend systems with encoders, modulators, multiplexers and IP gateways for DVB-C/T/S, ATSC and ISDB-T.', link: '/solutions/#digital-headend' },
+  { image: catFirstImage('ip-gateway'), title: 'IPTV Solution', desc: 'Turnkey IPTV systems for hotels, hospitals, schools, cruise ships and ISP communities with VOD and multi-language support.', link: '/solutions/#iptv' },
+  { image: catFirstImage('transmitter'), title: 'Wireless Transfer Solution', desc: 'STL links and wireless video transfer over 5.8 GHz for studio-to-transmitter connectivity.', link: '/solutions/#wireless' },
+  { image: catFirstImage('ird-decoder'), title: 'Internet Transfer Solution', desc: 'TCP/IP accelerated satellite modems and IP-based content distribution for global networks.', link: '/solutions/#internet' },
+];
+
+// 5 步流程（配真实场景图）
+const process = [
+  { step: '01', image: '/images/cases/hotel.jpg', title: 'Requirement Analysis', desc: 'We assess your broadcast needs, infrastructure and budget to define the optimal solution.' },
+  { step: '02', image: '/images/factory/quality-check.jpg', title: 'Solution Design', desc: 'Our engineers design a custom system architecture with detailed specifications and integration plans.' },
+  { step: '03', image: '/images/factory/factory-floor.jpg', title: 'Production & QA', desc: 'Equipment is manufactured in our Guangzhou factory with rigorous quality testing at every stage.' },
+  { step: '04', image: '/images/cases/isp.jpg', title: 'Installation & Training', desc: 'On-site or remote installation support with comprehensive training for your technical team.' },
+  { step: '05', image: '/images/cases/radio.jpg', title: 'After-Sales Support', desc: 'Lifetime technical support, warranty service and remote diagnostics to keep your system running.' },
+];
+
+// 工厂优势
+const advantages = [
+  { icon: 'fas fa-certificate', title: 'ISO 9001 Certified', desc: 'Certified manufacturing facility with strict quality control and testing procedures.' },
+  { icon: 'fas fa-factory', title: 'Factory Direct Pricing', desc: 'Buy directly from the source and eliminate middlemen costs. Competitive pricing without sacrificing quality.' },
+  { icon: 'fas fa-award', title: '20+ Years Expertise', desc: 'Deep industry expertise with thousands of successful deployments in over 50 countries worldwide.' },
+  { icon: 'fas fa-ship', title: 'Global Shipping', desc: 'Reliable worldwide logistics with air and sea freight options. Fast delivery to all major continents.' },
+];
+
+const breadcrumbs = [{ name: 'Home', url: '/' }];
+---
+
+<Layout
+  title="Professional Digital TV Headend Equipment Manufacturer | IPTVStream Broadcast"
+  description="IPTVStream Broadcast is a professional digital TV headend equipment manufacturer from China. Factory direct encoders, modulators, IP gateways, multiplexers, transmitters and antennas. ISO 9001 certified, global shipping."
+  schema={homeSchema}
+>
+  <!-- ===== Hero（Apple 风 + 氛围光） ===== -->
+  <section class="relative overflow-hidden bg-white" aria-label="Hero">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <img src="/images/general/hero-bg.jpg" alt="" loading="eager" class="absolute inset-0 w-full h-full object-cover opacity-[0.06]" />
+      <div class="absolute -top-32 left-1/4 w-[700px] h-[500px] bg-[#0071e3]/10 rounded-full blur-[120px]"></div>
+      <div class="absolute -top-24 right-1/4 w-[500px] h-[400px] bg-[#5ac8fa]/10 rounded-full blur-[110px]"></div>
+    </div>
+    <div class="relative container mx-auto max-w-7xl px-4 py-24 lg:py-32">
+      <div class="grid lg:grid-cols-2 gap-14 items-center">
+        <div class="text-center lg:text-left">
+          <p class="inline-flex items-center gap-2 bg-[#f5f5f7] text-[#6e6e73] text-sm font-medium px-4 py-2 rounded-full mb-7">
+            <i class="fas fa-award text-[#0071e3]"></i> Professional Digital TV Headend Manufacturer
+          </p>
+          <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight leading-[1.05] mb-6">
+            Broadcast Equipment, Factory Direct from China
+          </h1>
+          <p class="text-[#6e6e73] text-lg lg:text-xl leading-relaxed mb-8">
+            Encoders, modulators, IP gateways, multiplexers, transmitters and antennas — designed, manufactured and quality-tested in our own ISO 9001 certified factory. Trusted by broadcasters in 50+ countries.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
+            <a href="/products/" class="inline-flex items-center justify-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-lg font-medium px-8 py-4 rounded-full transition-colors">
+              <i class="fas fa-box text-base"></i> Browse Products
+            </a>
+            <a href="/contact/" class="inline-flex items-center justify-center gap-2 bg-[#e8e8ed] hover:bg-[#dcdce1] text-[#1d1d1f] text-lg font-medium px-8 py-4 rounded-full transition-colors">
+              <i class="fas fa-comments text-base"></i> Get a Quote
+            </a>
+          </div>
+          <div class="flex items-center justify-center lg:justify-start gap-8">
+            <div><p class="text-3xl font-bold text-[#1d1d1f]">20+</p><p class="text-sm text-[#86868b]">Years Experience</p></div>
+            <div class="w-px h-10 bg-[#d2d2d7]"></div>
+            <div><p class="text-3xl font-bold text-[#1d1d1f]">50+</p><p class="text-sm text-[#86868b]">Countries Served</p></div>
+            <div class="w-px h-10 bg-[#d2d2d7]"></div>
+            <div><p class="text-3xl font-bold text-[#1d1d1f]">ISO</p><p class="text-sm text-[#86868b]">9001 Certified</p></div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="relative bg-[#f5f5f7] rounded-3xl overflow-hidden">
+            <!-- 真实设备大图 -->
+            <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
+              <img src={catFirstImage('modulator') || catFirstImage('encoder')} alt="FMUSER Modulator / Encoder" loading="eager"
+                class="w-full h-full object-contain p-10" />
+              <span class="absolute top-4 left-4 inline-block text-xs font-semibold text-white bg-[#0071e3] px-3.5 py-1.5 rounded-full shadow-md">
+                Best Seller
+              </span>
+            </div>
+            <!-- 底部信息条 -->
+            <div class="px-6 py-4 border-t border-[#d2d2d7]/60">
+              <p class="font-semibold text-[#1d1d1f] text-base">FMUSER Headend Series</p>
+              <p class="text-[#86868b] text-sm mt-0.5">Encoders · Modulators · IP Gateways</p>
+            </div>
+          </div>
+          <!-- 浮动徽章 -->
+          <div class="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-lg border border-[#e8e8ed] px-5 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#f5f5f7] text-[#0071e3] rounded-xl inline-flex items-center justify-center">
+              <i class="fas fa-certificate text-lg"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-[#1d1d1f] text-sm">ISO 9001:2015</p>
+              <p class="text-xs text-[#86868b]">Certified Factory</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 工厂优势（含实拍图 + 认证） ===== -->
+  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Factory advantages">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <!-- 工厂实拍图 -->
+        <div class="relative reveal">
+          <div class="rounded-3xl overflow-hidden shadow-lg">
+            <img src="/images/factory/pcb-closeup.jpg" alt="Circuit board assembly in our manufacturing facility" loading="eager" fetchpriority="high"
+              class="w-full h-[320px] object-cover" />
+          </div>
+          <!-- ISO 认证浮标 -->
+          <div class="absolute -bottom-5 right-6 bg-white rounded-2xl shadow-lg border border-[#e8e8ed] px-5 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#f5f5f7] text-[#0071e3] rounded-xl inline-flex items-center justify-center">
+              <i class="fas fa-certificate text-lg"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-[#1d1d1f] text-sm">ISO 9001:2015</p>
+              <p class="text-xs text-[#86868b]">Certified Quality System</p>
+            </div>
+          </div>
+        </div>
+        <!-- 优势列表 -->
+        <div>
+          <p class="text-[#86868b] text-base font-medium mb-3">Why Factory Direct</p>
+          <h2 class="text-2xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-8">Buy Direct from the Manufacturer</h2>
+          <div class="space-y-6">
+            {
+              advantages.map((a) => (
+                <div class="flex gap-4 items-start">
+                  <div class="w-12 h-12 shrink-0 bg-white text-[#0071e3] rounded-2xl shadow-sm border border-[#e8e8ed] inline-flex items-center justify-center">
+                    <i class={`${a.icon} text-xl`}></i>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-[#1d1d1f] text-lg mb-1">{a.title}</h3>
+                    <p class="text-[#6e6e73] text-base leading-relaxed">{a.desc}</p>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+          <a href="/about/" class="inline-flex items-center gap-2 text-[#0071e3] font-medium text-base mt-8 hover:underline">
+            Learn more about our factory <i class="fas fa-arrow-right text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 产品分类 ===== -->
+  <section class="py-20 lg:py-28 bg-white" aria-label="Product categories">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="text-center mb-14 reveal">
+        <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight">Comprehensive Headend Equipment</h2>
+        <p class="text-[#6e6e73] text-lg mt-4 max-w-2xl mx-auto">Explore our range of professional digital TV headend equipment designed for broadcasters worldwide.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          topCats.map((cat) => (
+            <a href={`/products/#cat-${cat.id}`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
+                <img src={thumbOf(cat.image)} alt={CAT_NAMES[cat.id] || cat.id} loading="lazy"
+                  class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div class="p-5">
+                <h3 class="font-semibold text-[#1d1d1f] text-base mb-2 group-hover:text-[#0071e3] transition-colors">{CAT_NAMES[cat.id] || cat.id}</h3>
+                <p class="text-[#6e6e73] text-sm leading-relaxed line-clamp-2">{cat.desc}</p>
+                <span class="inline-flex items-center gap-1.5 text-[#0071e3] text-sm font-medium mt-3">
+                  Browse <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+      <div class="text-center mt-10">
+        <a href="/products/" class="inline-flex items-center gap-2 bg-[#e8e8ed] hover:bg-[#dcdce1] text-[#1d1d1f] text-lg font-medium px-8 py-4 rounded-full transition-colors"><i class="fas fa-box text-base"></i> View All {PRODUCTS.length}+ Products</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 认证与质检（信任感） ===== -->
+  <section class="py-16 lg:py-20 bg-white" aria-label="Certifications and quality">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <p class="text-[#86868b] text-base font-medium mb-3">Quality Assurance</p>
+          <h2 class="text-2xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-6">Every Unit Tested Before Shipping</h2>
+          <p class="text-[#6e6e73] text-lg leading-relaxed mb-8">
+            Each device goes through multi-stage quality control — from incoming component inspection to 24-hour burn-in testing and final RF output verification. Our quality system is certified to international standards.
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {
+              [
+                { cert: 'ISO 9001', sub: 'Quality system', badge: 'bg-[#0071e3]' },
+                { cert: 'CE', sub: 'EU conformity', badge: 'bg-[#f5a623]' },
+                { cert: 'RoHS', sub: 'Lead-free', badge: 'bg-[#34c759]' },
+                { cert: 'FCC', sub: 'US compliance', badge: 'bg-[#1d1d1f]' },
+              ].map((c) => (
+                <div class="bg-[#f5f5f7] rounded-2xl p-5 text-center">
+                  <div class={`w-12 h-12 mx-auto ${c.badge} text-white rounded-xl inline-flex items-center justify-center mb-2.5 font-bold text-[11px] tracking-wider shadow-sm`}>
+                    {c.cert === 'ISO 9001' ? 'ISO' : c.cert === 'CE' ? 'CE' : c.cert === 'RoHS' ? 'RoHS' : 'FCC'}
+                  </div>
+                  <p class="font-semibold text-[#1d1d1f] text-base">{c.cert}</p>
+                  <p class="text-sm text-[#86868b]">{c.sub}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div class="relative reveal">
+          <div class="rounded-3xl overflow-hidden shadow-lg">
+            <img src="/images/factory/quality-check.jpg" alt="Engineers performing quality control on broadcast equipment" loading="lazy"
+              class="w-full h-[300px] object-cover" />
+          </div>
+          <div class="absolute -top-4 -left-4 bg-[#0071e3] text-white rounded-2xl px-5 py-3.5 shadow-lg">
+            <p class="text-2xl font-bold">24h</p>
+            <p class="text-sm opacity-90">Burn-in test</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 解决方案 ===== -->
+  <section class="py-20 lg:py-28 bg-[#f5f5f7]" aria-label="Solutions">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="text-center mb-14 reveal">
+        <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight">End-to-End Broadcast Solutions</h2>
+        <p class="text-[#6e6e73] text-lg mt-4 max-w-2xl mx-auto">Complete solutions tailored for every broadcasting scenario.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-6">
+        {
+          solutions.map((s) => (
+            <a href={s.link} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="bg-[#f5f5f7] aspect-[16/9] flex items-center justify-center overflow-hidden">
+                <img src={thumbOf(s.image)} alt={s.title} loading="lazy"
+                  class="h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div class="p-7">
+                <h3 class="text-xl font-semibold text-[#1d1d1f] mb-2 group-hover:text-[#0071e3] transition-colors">{s.title}</h3>
+                <p class="text-[#6e6e73] text-base leading-relaxed">{s.desc}</p>
+                <span class="inline-flex items-center gap-2 text-[#0071e3] text-base font-medium mt-4">
+                  Learn More <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5 步流程 ===== -->
+  <section class="py-20 lg:py-28 bg-white" aria-label="Our process">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="text-center mb-14 reveal">
+        <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight">From Consultation to After-Sales</h2>
+        <p class="text-[#6e6e73] text-lg mt-4 max-w-2xl mx-auto">A proven 5-step approach to delivering tailored broadcast solutions.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {
+          process.map((p) => (
+            <div class="relative bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="relative h-28 overflow-hidden">
+                <img src={p.image} alt={p.title} loading="lazy"
+                  class="w-full h-full object-cover" />
+                <span class="absolute top-2 right-2 text-xs font-semibold text-[#0071e3] bg-white/95 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">{p.step}</span>
+              </div>
+              <div class="p-5">
+                <h3 class="font-semibold text-[#1d1d1f] text-base mb-1.5">{p.title}</h3>
+                <p class="text-[#6e6e73] text-sm leading-relaxed">{p.desc}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 客户案例（真实场景） ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Deployment cases">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="text-center mb-14 reveal">
+        <h2 class="text-2xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight">Deployments Around the World</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {
+          [
+            { image: '/images/cases/hotel.jpg', title: '200-Room Hotel IPTV', region: 'Bali, Indonesia', desc: 'Full headend with 2× IPTV gateway servers, 200 STBs and VOD for a beachfront resort. Installed and trained in 5 days.' },
+            { image: '/images/cases/radio.jpg', title: 'Community FM Station', region: 'Lagos, Nigeria', desc: '1KW FM transmitter with 4-bay antenna, audio processing and studio link. On air within 2 weeks of order.' },
+            { image: '/images/cases/university.jpg', title: 'University Campus DVB-C', region: 'Guadalajara, Mexico', desc: '32-channel QAM headend serving 8,000 students across 6 dormitories. Encoder, multiplexer and scrambling in one rack.' },
+            { image: '/images/cases/hospital.jpg', title: 'Hospitals & Clinics', region: 'Kuala Lumpur, Malaysia', desc: 'IPTV for patient entertainment with 24 local channels and multi-language EPG across 3 hospital buildings.' },
+            { image: '/images/cases/cruise.jpg', title: 'Cruise Ship TV', region: 'Miami, USA', desc: 'Compact 8-in-1 encoder modulator feeding 400 cabins with satellite-to-DVB-T conversion.' },
+            { image: '/images/cases/isp.jpg', title: 'ISP IP Distribution', region: 'Riyadh, Saudi Arabia', desc: 'IPTV gateway with 1000+ IP subscribers, content from 16 satellite tuners, fully managed remotely.' },
+          ].map((c) => (
+            <div class="bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="relative h-40 overflow-hidden">
+                <img src={c.image} alt={c.title} loading="lazy"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <span class="absolute bottom-3 left-3 bg-black/60 backdrop-blur text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                  <i class="fas fa-location-dot mr-1"></i>{c.region}
+                </span>
+              </div>
+              <div class="p-6">
+                <h3 class="font-semibold text-[#1d1d1f] text-lg mb-2">{c.title}</h3>
+                <p class="text-[#6e6e73] text-base leading-relaxed">{c.desc}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 精选产品 ===== -->
+  <section class="py-20 lg:py-28 bg-[#f5f5f7]" aria-label="Featured products">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="flex items-end justify-between mb-12 reveal">
+        <div>
+          <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight">Popular Equipment</h2>
+          <p class="text-[#6e6e73] text-lg mt-2">Best sellers trusted by broadcasters worldwide</p>
+        </div>
+        <a href="/products/" class="hidden sm:inline-flex items-center gap-2 text-[#0071e3] font-medium text-base hover:underline">
+          View All <i class="fas fa-arrow-right text-xs"></i>
+        </a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          PRODUCTS.slice(0, 4).map((p) => (
+            <a href={`/products/${p.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
+                {
+                  p.image ? (
+                    <img src={thumbOf(p.image)} alt={p.name} loading="lazy"
+                      class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <i class="fas fa-tower-broadcast text-4xl text-[#a1a1a6] group-hover:text-[#0071e3] transition-colors"></i>
+                  )
+                }
+              </div>
+              <div class="p-5">
+                <h3 class="font-semibold text-[#1d1d1f] text-base leading-snug mb-3 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h3>
+                <span class="inline-flex items-center gap-1.5 text-[#0071e3] text-sm font-medium">
+                  View Details <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 博客精选 ===== -->
+  <section class="py-20 lg:py-28 bg-white" aria-label="Latest articles">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="flex items-end justify-between mb-12 reveal">
+        <div>
+          <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight">Guides & Expert Tips</h2>
+          <p class="text-[#6e6e73] text-lg mt-2">Latest articles from our engineering team</p>
+        </div>
+        <a href="/blog/" class="hidden sm:inline-flex items-center gap-2 text-[#0071e3] font-medium text-base hover:underline">
+          View All Articles <i class="fas fa-arrow-right text-xs"></i>
+        </a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {
+          latestPosts.map((post) => (
+            <a href={`/blog/${post.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+              <div class="overflow-hidden aspect-[16/9] bg-[#f5f5f7]">
+                <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} loading="lazy"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-2.5">
+                  <span class="text-xs font-semibold text-[#0071e3] bg-[#0071e3]/10 px-2.5 py-1 rounded-full">{post.category}</span>
+                  <span class="text-sm text-[#86868b]">{post.date}</span>
+                </div>
+                <h3 class="font-semibold text-[#1d1d1f] text-base leading-snug mb-2 group-hover:text-[#0071e3] transition-colors">{post.title}</h3>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="py-20 lg:py-24 bg-[#f5f5f7]" aria-label="Get a quote">
+    <div class="container mx-auto max-w-7xl px-4 reveal">
+      <div class="bg-[#1d1d1f] rounded-3xl px-8 py-16 lg:py-20 text-center">
+        <h2 class="text-3xl lg:text-5xl font-bold text-white tracking-tight mb-4">Ready to Build Your Solution?</h2>
+        <p class="text-white/80 text-lg mb-10 max-w-xl mx-auto">Contact our engineering team today for a free consultation and tailored proposal for your broadcast needs.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+          <a href="/contact/" class="inline-flex items-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium px-10 py-4 rounded-full transition-colors shadow-lg">
+            <i class="fas fa-paper-plane"></i> Get a Free Quote
+          </a>
+          <a href="tel:+8613922702227" class="inline-flex items-center gap-2 border-2 border-white/30 text-white font-medium px-8 py-4 rounded-full hover:bg-white/10 transition-colors">
+            <i class="fas fa-phone"></i> +86-139-2270-2227
+          </a>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-white/80 text-base">
+          <span><i class="fas fa-envelope mr-2"></i>sales@coaxtoiptv.com</span>
+          <span><i class="fas fa-location-dot mr-2"></i>Guangzhou, China</span>
+          <span><i class="fas fa-clock mr-2"></i>Mon–Sat, 9:00–18:00 (GMT+8)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

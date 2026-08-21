@@ -1,0 +1,427 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { PRODUCTS, CAT_NAMES } from '../../data/products';
+
+// 生成所有产品静态路径
+export function getStaticPaths() {
+  return PRODUCTS.map((p) => ({
+    params: { slug: p.slug },
+    props: { product: p },
+  }));
+}
+
+const { product } = Astro.props;
+
+const catNames = CAT_NAMES;
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.description,
+  image: product.image || undefined,
+  url: `https://www.iptv-demo.example.com/products/${product.slug}/`,
+  brand: { '@type': 'Brand', name: 'FMUSER' },
+  category: catNames[product.category] || product.category,
+};
+
+const breadcrumbs = [
+  { name: 'Products', url: '/products/' },
+  { name: product.name.slice(0, 30), url: `/products/${product.slug}/` },
+];
+
+const specEntries = Object.entries(product.specs);
+
+// 图片尺寸 helper：主图 900px WebP，缩略图 400px WebP，灯箱用原图
+const medOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
+const thumbOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp');
+
+// 灯箱图片数组（JSON 字符串，注入到内联脚本）
+const galleryJson = JSON.stringify(
+  product.gallery && product.gallery.length > 0 ? product.gallery : [product.image || '']
+);
+
+// 同分类相关产品（最多 4 个，排除当前）
+const related = PRODUCTS.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
+// 同系列（名称前 3 个字符相同，如 FU4xxx）补充
+const relatedBySeries = related.length < 4
+  ? PRODUCTS.filter((p) => p.slug !== product.slug && p.category !== product.category && p.name.slice(0, 4).toLowerCase() === product.name.slice(0, 4).toLowerCase()).slice(0, 4 - related.length)
+  : [];
+
+// 核心亮点：从 specs 中按关键词评分，提取最重要的 4 个参数
+const KEY_SPEC_RULES = [
+  { re: /^Resolution$/i, score: 100 },
+  { re: /Encoding|Video.*Format/i, score: 90, exclude: /^Audio/ },
+  { re: /^Bit[- ]?rate/i, score: 85 },
+  { re: /^Input/i, score: 80 },
+  { re: /^Output/i, score: 80 },
+  { re: /^Modulation|Constellation/i, score: 75 },
+  { re: /^Channels?$/i, score: 70 },
+  { re: /^Interface/i, score: 60 },
+  { re: /^Power/i, score: 55 },
+  { re: /^Audio:/i, score: 40 },
+  { re: /^Standard$/i, score: 35 },
+];
+function specScore(k) {
+  let best = 0;
+  for (const rule of KEY_SPEC_RULES) {
+    if (rule.exclude && rule.exclude.test(k)) continue;
+    if (rule.re.test(k)) best = Math.max(best, rule.score);
+  }
+  return best;
+}
+const scored = specEntries
+  .filter(([k, v]) => v && v.trim() && specScore(k) > 0)
+  .sort((a, b) => specScore(b[0]) - specScore(a[0]));
+const highlights = scored.slice(0, 4).map(([k, v]) => {
+  let val = v.split(',')[0].split(';')[0].trim();
+  if (val.length > 30) val = val.slice(0, 29) + '…';
+  const isAudio = /^Audio:/i.test(k);
+  return { key: isAudio ? 'Audio ' + k.replace(/^Audio:\s*/i, '') : k, value: val };
+});
+---
+
+<Layout
+  title={`${product.name} | IPTVStream`}
+  description={product.description}
+  schema={productSchema}
+  breadcrumbs={breadcrumbs}
+  image={product.image}
+  category={catNames[product.category] || product.category}
+>
+  <!-- ===== 产品头部（Apple 风：白底、大留白、超大标题） ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Product overview">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid lg:grid-cols-2 gap-14 lg:gap-20 items-start">
+        <!-- 产品图（画廊） -->
+        <div>
+          <div class="relative">
+            <div class="bg-[#f5f5f7] rounded-3xl aspect-square flex items-center justify-center relative overflow-hidden cursor-zoom-in group" id="gallery-stage" role="button" tabindex="0" aria-label="Click to enlarge image">
+              <img src={medOf(product.image)} alt={product.name} id="gallery-main" loading="eager"
+                class="h-full w-full object-contain p-8 transition-transform duration-300 group-hover:scale-[1.03]" />
+              {
+                product.gallery && product.gallery.length > 1 && (
+                  <span class="absolute bottom-4 right-4 inline-block bg-white/90 backdrop-blur text-[#86868b] text-xs font-medium px-3 py-1.5 rounded-full z-10">
+                    <i class="fas fa-images mr-1.5"></i>{product.gallery.length} photos
+                  </span>
+                )
+              }
+            </div>
+            {
+              product.gallery && product.gallery.length > 1 && (
+                <>
+                  <!-- 主图左右切换按钮 -->
+                  <button type="button" id="stage-prev" aria-label="Previous image"
+                    class="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-lg border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all">
+                    <i class="fas fa-chevron-left text-base"></i>
+                  </button>
+                  <button type="button" id="stage-next" aria-label="Next image"
+                    class="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-lg border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all">
+                    <i class="fas fa-chevron-right text-base"></i>
+                  </button>
+                </>
+              )
+            }
+          </div>
+          {
+            product.gallery && product.gallery.length > 1 && (
+              <div class="flex gap-3 mt-6" id="gallery-thumbs">
+                {
+                  product.gallery.map((img, idx) => (
+                    <button type="button" data-gallery-img={img}
+                      class={`gallery-thumb w-20 h-20 rounded-2xl overflow-hidden bg-[#f5f5f7] flex items-center justify-center cursor-pointer transition-all border-2 ${idx === 0 ? 'border-[#0071e3]' : 'border-transparent hover:border-[#d2d2d7]'}`}
+                      aria-label={`View image ${idx + 1}`}>
+                      <img src={thumbOf(img)} alt={`${product.name} photo ${idx + 1}`} loading="lazy"
+                        class="w-full h-full object-contain p-1.5" />
+                    </button>
+                  ))
+                }
+              </div>
+            )
+          }
+        </div>
+
+        <!-- 产品信息 -->
+        <div class="lg:pt-4">
+          <p class="text-[#86868b] text-base lg:text-lg font-medium tracking-wide mb-3">{catNames[product.category] || product.category}</p>
+          <h1 class="text-4xl lg:text-[3rem] font-bold text-[#1d1d1f] tracking-tight leading-[1.08] mb-6">{product.name}</h1>
+          <p class="text-[#6e6e73] text-lg lg:text-xl leading-relaxed mb-8">{product.description}</p>
+          {
+            highlights.length > 0 && (
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+                {
+                  highlights.map((h) => (
+                    <div class="bg-[#f5f5f7] rounded-2xl px-4 py-3.5 border border-[#e8e8ed]">
+                      <p class="text-xs font-medium text-[#86868b] mb-1">{h.key}</p>
+                      <p class="text-sm font-semibold text-[#1d1d1f] leading-snug line-clamp-2">{h.value}</p>
+                    </div>
+                  ))
+                }
+              </div>
+            )
+          }
+          <div class="flex flex-col sm:flex-row gap-4 mb-10">
+            <a href="/contact/" class="inline-flex items-center justify-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-lg font-medium px-9 py-4 rounded-full transition-colors">
+              <i class="fas fa-paper-plane text-base"></i> Request a Quote
+            </a>
+            <a href={`/pdf/${product.slug}.pdf`} target="_blank" rel="noopener"
+              class="inline-flex items-center justify-center gap-2 bg-[#e8e8ed] hover:bg-[#dcdce1] text-[#1d1d1f] text-lg font-medium px-9 py-4 rounded-full transition-colors">
+              <i class="fas fa-file-pdf text-base text-[#ff375f]"></i> Download Datasheet
+            </a>
+            <a href="/products/" class="inline-flex items-center justify-center gap-2 border border-[#d2d2d7] text-[#1d1d1f] text-lg font-medium px-9 py-4 rounded-full hover:bg-[#f5f5f7] transition-colors">
+              <i class="fas fa-arrow-left text-base"></i> All Products
+            </a>
+          </div>
+          <!-- Quick Facts（浅灰卡片） -->
+          <div class="bg-[#f5f5f7] rounded-3xl p-8">
+            <h2 class="text-[#1d1d1f] text-xl font-semibold mb-6">Key Specifications</h2>
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+              {
+                specEntries.slice(0, 6).map(([k, v]) => (
+                  <div class="border-b border-[#d2d2d7] pb-3">
+                    <dt class="text-[#86868b] text-sm mb-1">{k}</dt>
+                    <dd class="text-[#1d1d1f] text-base font-medium line-clamp-1">{v}</dd>
+                  </div>
+                ))
+              }
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 完整规格表（极简表格） ===== -->
+  {
+    specEntries.length > 0 && (
+      <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Full specifications">
+        <div class="container mx-auto max-w-5xl px-4">
+          <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-12 text-center">Technical Specifications</h2>
+          <div class="bg-white rounded-3xl px-6 sm:px-10 py-6 shadow-sm">
+            <div class="overflow-x-auto -mx-6 sm:mx-0">
+              <table class="w-full min-w-[560px] sm:min-w-0">
+                <tbody class="divide-y divide-[#f0f0f2]">
+                  {
+                    specEntries.map(([k, v]) => (
+                      <tr class="hover:bg-[#fafafc] transition-colors">
+                        <th scope="row" class="py-5 pr-6 text-[#86868b] text-base font-medium w-2/5 align-top">{k}</th>
+                        <td class="py-5 text-[#1d1d1f] text-base lg:text-lg">{v}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ===== 应用场景 ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Applications">
+    <div class="container mx-auto max-w-6xl px-4">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4 text-center">Applications</h2>
+      <p class="text-[#6e6e73] text-lg text-center mb-14">Where this equipment is used</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          [
+            { icon: 'fas fa-hotel', title: 'Hotels & Resorts', desc: 'In-room IPTV, VOD and guest entertainment systems.' },
+            { icon: 'fas fa-building', title: 'Hospital & Clinics', desc: 'Patient TV, digital signage and staff communications.' },
+            { icon: 'fas fa-graduation-cap', title: 'Campus & Schools', desc: 'Campus-wide digital TV distribution to dorms and classrooms.' },
+            { icon: 'fas fa-radio', title: 'Broadcast Stations', desc: 'FM/TV transmission, STL links and headend processing.' },
+          ].map((a) => (
+            <div class="bg-[#f5f5f7] rounded-3xl p-8 text-center hover:bg-[#ececf0] transition-colors">
+              <div class="w-16 h-16 mx-auto bg-white rounded-2xl text-[#0071e3] inline-flex items-center justify-center mb-5 shadow-sm">
+                <i class={`${a.icon} text-2xl`}></i>
+              </div>
+              <h3 class="font-semibold text-[#1d1d1f] text-lg mb-2.5">{a.title}</h3>
+              <p class="text-[#6e6e73] text-base leading-relaxed">{a.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 信任要点 ===== -->
+  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Why buy from us">
+    <div class="container mx-auto max-w-6xl px-4">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4 text-center">Why Buy From Us</h2>
+      <p class="text-[#6e6e73] text-lg text-center mb-14">Manufactured in our own certified facility</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          [
+            { icon: 'fas fa-certificate', title: 'ISO 9001 Factory', desc: 'Manufactured and tested in our certified facility.' },
+            { icon: 'fas fa-truck-fast', title: 'Global Shipping', desc: 'Air or sea freight worldwide with full tracking.' },
+            { icon: 'fas fa-headset', title: '24/7 Support', desc: 'Direct access to our engineers — no middlemen.' },
+            { icon: 'fas fa-shield-halved', title: '12-Month Warranty', desc: 'Hassle-free replacement and repair coverage.' },
+          ].map((t) => (
+            <div class="bg-white rounded-3xl p-8 text-center hover:shadow-lg transition-shadow">
+              <div class="w-16 h-16 mx-auto bg-[#f5f5f7] rounded-2xl text-[#0071e3] inline-flex items-center justify-center mb-5">
+                <i class={`${t.icon} text-2xl`}></i>
+              </div>
+              <h3 class="font-semibold text-[#1d1d1f] text-lg mb-2.5">{t.title}</h3>
+              <p class="text-[#6e6e73] text-base leading-relaxed">{t.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 相关产品 ===== -->
+  {
+    related.length + relatedBySeries.length > 0 && (
+      <section class="py-16 lg:py-24 bg-white" aria-label="Related products">
+        <div class="container mx-auto max-w-7xl px-4">
+          <div class="flex items-end justify-between mb-12">
+            <div>
+              <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight">Related Products</h2>
+              <p class="text-[#6e6e73] mt-2">More options in this range</p>
+            </div>
+            <a href="/products/" class="hidden sm:inline-flex items-center gap-2 text-[#0071e3] font-medium text-sm hover:underline">
+              All Products <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {
+              [...related, ...relatedBySeries].map((p) => (
+                <a href={`/products/${p.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+                  <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
+                    {
+                      p.image ? (
+                        <img src={thumbOf(p.image)} alt={p.name} loading="lazy"
+                          class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <i class="fas fa-tower-broadcast text-4xl text-[#a1a1a6]"></i>
+                      )
+                    }
+                  </div>
+                  <div class="p-5">
+                    <span class="text-[11px] font-medium text-[#86868b] uppercase tracking-wide">{catNames[p.category] || p.category}</span>
+                    <h3 class="font-semibold text-[#1d1d1f] text-sm leading-snug mt-1.5 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h3>
+                  </div>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ===== 相关 CTA ===== -->
+  <section class="py-20 lg:py-28 bg-[#f5f5f7]" aria-label="Next steps">
+    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
+      <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight mb-5">Interested in this product?</h2>
+      <p class="text-[#6e6e73] text-lg mb-10">Contact us for pricing, availability and integration support.</p>
+      <a href="/contact/" class="inline-flex items-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-base font-medium px-10 py-4 rounded-full transition-colors">
+        <i class="fas fa-comments"></i> Talk to Our Team
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== 图片灯箱（放大 + 左右切换） ===== -->
+  <div id="lightbox" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-bg" class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+    <button type="button" id="lb-close" class="absolute top-5 right-5 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors" aria-label="Close">
+      <i class="fas fa-xmark"></i>
+    </button>
+    <button type="button" id="lb-prev" class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg transition-colors" aria-label="Previous image">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <button type="button" id="lb-next" class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg transition-colors" aria-label="Next image">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <div class="absolute inset-0 flex items-center justify-center p-6 sm:p-16">
+      <img id="lb-img" src="" alt="" class="max-w-full max-h-full object-contain select-none"
+        style="box-shadow:0 0 60px rgba(0,0,0,.6)" />
+    </div>
+    <div id="lb-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-white/10 px-4 py-1.5 rounded-full"></div>
+  </div>
+
+  <script is:inline define:vars={{ GALLERY: product.gallery && product.gallery.length > 0 ? product.gallery : [product.image || ''] }}>
+    (function () {
+      var gallery = GALLERY;
+      var main = document.getElementById('gallery-main');
+      var stage = document.getElementById('gallery-stage');
+      var thumbs = document.querySelectorAll('.gallery-thumb');
+      var current = 0;
+
+      function setImg(idx, fromThumb) {
+        if (!gallery.length) return;
+        idx = (idx + gallery.length) % gallery.length;
+        current = idx;
+        if (main) main.src = gallery[idx].replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
+        thumbs.forEach(function (t, i) {
+          t.classList.toggle('border-[#0071e3]', i === idx);
+          t.classList.toggle('border-transparent', i !== idx);
+        });
+      }
+      thumbs.forEach(function (t, i) {
+        t.addEventListener('click', function () { setImg(i, true); });
+      });
+      // 主图左右切换按钮（不打开灯箱）
+      var stagePrev = document.getElementById('stage-prev');
+      var stageNext = document.getElementById('stage-next');
+      if (stagePrev) stagePrev.addEventListener('click', function (e) { e.stopPropagation(); setImg(current - 1); });
+      if (stageNext) stageNext.addEventListener('click', function (e) { e.stopPropagation(); setImg(current + 1); });
+
+      // ---- 灯箱 ----
+      var lb = document.getElementById('lightbox');
+      var lbImg = document.getElementById('lb-img');
+      var lbCounter = document.getElementById('lb-counter');
+      var lbClose = document.getElementById('lb-close');
+      var lbPrev = document.getElementById('lb-prev');
+      var lbNext = document.getElementById('lb-next');
+      var lbBg = document.getElementById('lightbox-bg');
+
+      function openLb(idx) {
+        if (!gallery.length) return;
+        current = (idx + gallery.length) % gallery.length;
+        lbImg.src = gallery[current];
+        lbCounter.textContent = (current + 1) + ' / ' + gallery.length;
+        lb.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (lbPrev) lbPrev.style.display = gallery.length > 1 ? '' : 'none';
+        if (lbNext) lbNext.style.display = gallery.length > 1 ? '' : 'none';
+        // 同步主图 + 缩略图高亮（灯箱与页面主图保持一致）
+        if (main) main.src = gallery[current].replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
+        thumbs.forEach(function (t, i) {
+          t.classList.toggle('border-[#0071e3]', i === current);
+          t.classList.toggle('border-transparent', i !== current);
+        });
+      }
+      function closeLb() {
+        lb.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+      function move(d) { openLb(current + d); }
+
+      if (stage) stage.addEventListener('click', function () { openLb(current); });
+      if (stage) stage.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(current); }
+      });
+      if (lbClose) lbClose.addEventListener('click', closeLb);
+      if (lbBg) lbBg.addEventListener('click', closeLb);
+      if (lbPrev) lbPrev.addEventListener('click', function () { move(-1); });
+      if (lbNext) lbNext.addEventListener('click', function () { move(1); });
+      document.addEventListener('keydown', function (e) {
+        if (lb.classList.contains('hidden')) return;
+        if (e.key === 'Escape') closeLb();
+        if (e.key === 'ArrowLeft') move(-1);
+        if (e.key === 'ArrowRight') move(1);
+      });
+      // 触摸滑动切换
+      var touchX = null;
+      lb.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+      lb.addEventListener('touchend', function (e) {
+        if (touchX === null) return;
+        var dx = e.changedTouches[0].clientX - touchX;
+        if (Math.abs(dx) > 50) move(dx < 0 ? 1 : -1);
+        touchX = null;
+      }, { passive: true });
+    })();
+  </script>
+</Layout>

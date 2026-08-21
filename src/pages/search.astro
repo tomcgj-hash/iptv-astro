@@ -1,0 +1,614 @@
+---
+// 搜索页 — Pagefind 静态搜索 + 分类筛选 + 排序 + 搜索建议
+// 构建时运行 `pagefind --site dist` 生成索引，页面通过 Pagefind JS API 查询
+import Layout from '../layouts/Layout.astro';
+import { PRODUCTS, CAT_NAMES } from '../data/products';
+
+const searchSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Search — IPTVStream',
+  url: 'https://www.iptv-demo.example.com/search/',
+  description: 'Search IPTVStream Broadcast for equipment, solutions, products and guides.',
+};
+
+const breadcrumbs = [{ name: 'Search', url: '/search/' }];
+
+// 轻量产品目录（内嵌页面：分类筛选 / 型号建议 / 无关键词浏览）
+const searchCatalog = PRODUCTS.map((p) => ({
+  s: p.slug,
+  n: p.name,
+  c: p.category,
+  i: p.image || '',
+}));
+
+// 分类列表（含计数，按 CAT_NAMES 顺序，只含有产品的分类）
+const catList = Object.keys(CAT_NAMES)
+  .filter((k) => PRODUCTS.some((p) => p.category === k))
+  .map((k) => ({
+    key: k,
+    name: CAT_NAMES[k],
+    count: PRODUCTS.filter((p) => p.category === k).length,
+  }));
+
+// 热门搜索词（搜索建议兜底）
+const hotWords = ['encoder', 'modulator', 'QAM', 'transmitter', 'IPTV gateway', 'HDMI encoder', 'H.264', 'HEVC', 'SRT', 'RTMP', 'multiplexer', 'scrambler', 'IRD', 'decoder', 'VOD'];
+
+// 高频词库：从产品名提取（型号 + 特征词），前缀匹配做关键词建议
+// Pagefind 1.5 已移除 suggestions API，故用本地词库替代
+const wordFreq = {};
+PRODUCTS.forEach((p) => {
+  p.name.split(/[\s\-()/]+/).forEach((w) => {
+    w = w.replace(/[^A-Za-z0-9]/g, '');
+    if (w.length >= 3 && !/^\d+$/.test(w)) {
+      wordFreq[w.toLowerCase()] = (wordFreq[w.toLowerCase()] || 0) + 1;
+    }
+  });
+});
+const suggestWords = Object.entries(wordFreq)
+  .filter(([w, c]) => c >= 3 && !/^(fmuser|network)$/.test(w))
+  .sort((a, b) => b[1] - a[1])
+  .map(([w]) => w)
+  .slice(0, 80);
+---
+
+<Layout
+  title="Search | IPTVStream"
+  description="Search IPTVStream Broadcast: find equipment, products, solutions and technical guides."
+  schema={searchSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <section class="py-14 lg:py-20 bg-white min-h-[70vh]" aria-label="Site search">
+    <div class="container mx-auto max-w-3xl px-4">
+      <h1 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] text-center mb-8">Search IPTVStream</h1>
+
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#e8e8ed]">
+        <label for="search-input" class="block text-sm font-semibold text-[#6e6e73] mb-3">Search equipment, products &amp; guides</label>
+
+        <!-- 搜索框 + 建议下拉 -->
+        <div class="relative" id="search-box-wrap">
+          <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#86868b] z-10"></i>
+          <input
+            type="search"
+            id="search-input"
+            placeholder='Try "FM transmitter", "IPTV gateway", "encoder"...'
+            class="w-full border border-[#e8e8ed] rounded-xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent"
+            autocomplete="off"
+            aria-autocomplete="list"
+            aria-controls="search-suggestions"
+          />
+          <!-- 搜索建议下拉 -->
+          <div id="search-suggestions" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#e8e8ed] overflow-hidden z-50"></div>
+        </div>
+
+        <!-- 分类筛选 chips -->
+        <div class="flex gap-2 overflow-x-auto no-scrollbar mt-5 pb-1 -mx-1 px-1" id="cat-chips" role="tablist" aria-label="Filter by category">
+          <button type="button" data-cat="all" role="tab" aria-selected="true"
+            class="cat-chip shrink-0 rounded-full px-4 py-2 text-[13px] font-medium border transition-colors bg-[#0071e3] text-white border-transparent">
+            All <span class="opacity-80 font-normal">(191)</span>
+          </button>
+        </div>
+
+        <!-- 结果工具条：计数 + 排序 -->
+        <div class="flex items-center justify-between mt-6 mb-3">
+          <p id="search-count" class="text-[13px] text-[#86868b] font-medium"></p>
+          <div class="flex items-center gap-1.5" id="sort-btns" aria-label="Sort results">
+            <span class="text-[12px] text-[#86868b] mr-1 hidden sm:inline">Sort</span>
+            <button type="button" data-sort="relevance" class="sort-btn rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors bg-[#0071e3]/10 text-[#0071e3] border-transparent">Relevance</button>
+            <button type="button" data-sort="name-asc" class="sort-btn rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]">A–Z</button>
+            <button type="button" data-sort="name-desc" class="sort-btn rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]">Z–A</button>
+          </div>
+        </div>
+
+        <!-- 搜索结果 -->
+        <div id="search-results" class="mt-4 space-y-4" aria-live="polite"></div>
+        <p id="search-status" class="text-sm text-[#86868b] mt-4 hidden"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pagefind 搜索脚本（原生 JS；pagefind.js 为 ESM，用动态 import 加载） -->
+  <script is:inline define:vars={{ CATALOG: searchCatalog, CATEGORIES: catList, HOT_WORDS: hotWords, SUGGEST_WORDS: suggestWords }}>
+    (function () {
+      function boot() {
+      var input = document.getElementById('search-input');
+      var resultsEl = document.getElementById('search-results');
+      var statusEl = document.getElementById('search-status');
+      var countEl = document.getElementById('search-count');
+      var chipsWrap = document.getElementById('cat-chips');
+      var suggestEl = document.getElementById('search-suggestions');
+      if (!input || !resultsEl || !statusEl) return;
+
+      // ---------- 状态 ----------
+      var state = { q: '', cat: 'all', sort: 'relevance' };
+      var pagefind = null;
+      var cache = null; // { q, items: [...] } Pagefind 原始结果缓存（避免重复搜索）
+      var suggestIndex = -1; // 建议下拉高亮项
+
+      // ---------- 分类 chips（服务端注入数据 + 渲染） ----------
+      CATEGORIES.forEach(function (c) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('data-cat', c.key);
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', 'false');
+        btn.className = 'cat-chip shrink-0 rounded-full px-4 py-2 text-[13px] font-medium border transition-colors bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]';
+        btn.innerHTML = escapeHtml(c.name) + ' <span class="text-[#86868b] font-normal">(' + c.count + ')</span>';
+        chipsWrap.appendChild(btn);
+      });
+
+      // ---------- 工具函数 ----------
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function thumbOf(img) {
+        return img ? img.replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp') : '';
+      }
+
+      function catNameOf(key) {
+        if (key === 'all') return 'All';
+        for (var i = 0; i < CATEGORIES.length; i++) {
+          if (CATEGORIES[i].key === key) return CATEGORIES[i].name;
+        }
+        return key;
+      }
+
+      var catOfSlug = {};
+      CATALOG.forEach(function (p) { catOfSlug[p.s] = p.c; });
+
+      // 从 Pagefind url 解析 slug（兼容 /products/<slug>/ 与 /products/<slug>/index.html）
+      function slugOf(url) {
+        var m = String(url).match(/\/products\/([^\/]+?)(?:\/|$)/);
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+
+      // 从产品名提取型号 token（如 FUQ4339KN）
+      function modelToken(name) {
+        var m = String(name).match(/FUQ[\w-]*/i);
+        if (m) return m[0].replace(/-+$/, '');
+        var toks = String(name).split(/\s+/);
+        for (var i = 0; i < toks.length; i++) {
+          if (/\d/.test(toks[i])) return toks[i].replace(/[^A-Za-z0-9-]/g, '');
+        }
+        return toks[0] || '';
+      }
+
+      // ---------- Pagefind 加载（ESM 动态 import） ----------
+      async function loadPagefind() {
+        if (pagefind) return pagefind;
+        if (window.pagefind && typeof window.pagefind.search === 'function') {
+          pagefind = window.pagefind;
+          return pagefind;
+        }
+        try {
+          // pagefind.js 是 ESM 模块，动态 import 返回的模块对象带 search 方法
+          pagefind = await import('/pagefind/pagefind.js');
+          window.__pf_debug = { hasSearch: typeof pagefind.search === 'function', keys: Object.keys(pagefind).slice(0, 8) };
+          return pagefind;
+        } catch (e) {
+          window.__pf_debug = { importErr: String(e).slice(0, 100) };
+          return null;
+        }
+      }
+
+      // ---------- 排序 ----------
+      function sortItems(items) {
+        if (state.sort === 'name-asc') {
+          items.sort(function (a, b) { return a.title.localeCompare(b.title, 'en'); });
+        } else if (state.sort === 'name-desc') {
+          items.sort(function (a, b) { return b.title.localeCompare(a.title, 'en'); });
+        }
+        return items; // relevance：保持 Pagefind 原顺序
+      }
+
+      // ---------- 渲染结果卡片 ----------
+      function renderItems(items, summary) {
+        resultsEl.innerHTML = '';
+        countEl.textContent = summary || '';
+        if (items.length === 0) {
+          statusEl.textContent = state.q
+            ? 'No results found for "' + state.q + '". Try different keywords or remove the category filter.'
+            : 'No products in this category yet.';
+          statusEl.classList.remove('hidden');
+          return;
+        }
+        statusEl.classList.add('hidden');
+        items.forEach(function (item) {
+          var isProduct = !!item.slug && catOfSlug[item.slug] !== undefined;
+          var a = document.createElement('a');
+          a.href = item.url;
+          a.className = 'group flex items-center gap-4 bg-white hover:bg-[#f5f5f7] rounded-2xl p-4 border border-[#e8e8ed] transition-colors';
+          var html = '';
+          if (item.thumb) {
+            html += '<img src="' + item.thumb + '" alt="" loading="lazy" class="w-16 h-16 rounded-xl bg-[#f5f5f7] object-contain shrink-0" />';
+          }
+          html += '<div class="min-w-0 flex-1">';
+          if (isProduct) {
+            html += '<span class="inline-block text-[10px] font-semibold text-[#0071e3] bg-[#0071e3]/10 rounded-full px-2 py-0.5 mb-1.5 uppercase tracking-wide">' + escapeHtml(catNameOf(catOfSlug[item.slug])) + '</span>';
+          }
+          html += '<h2 class="font-semibold text-[#1d1d1f] leading-snug group-hover:text-[#0071e3] transition-colors">' + escapeHtml(item.title) + '</h2>' +
+            (item.excerpt ? '<p class="text-sm text-[#86868b] leading-relaxed mt-1 line-clamp-2">' + item.excerpt + '</p>' : '') +
+            '</div>' +
+            '<i class="fas fa-chevron-right text-[#c7c7cc] group-hover:text-[#0071e3] transition-colors shrink-0"></i>';
+          a.innerHTML = html;
+          resultsEl.appendChild(a);
+        });
+      }
+
+      // ---------- 汇总执行：Pagefind 搜索 + 分类过滤 + 排序 ----------
+      async function runSearch(q) {
+        hideSuggestions(); // 搜索执行 → 建议使命完成，收起下拉避免遮挡结果区
+        var pf = await loadPagefind();
+        if (!pf) {
+          statusEl.textContent = 'Search index is being prepared. Please try again in a moment.';
+          statusEl.classList.remove('hidden');
+          return;
+        }
+        statusEl.textContent = 'Searching...';
+        statusEl.classList.remove('hidden');
+        try {
+          // 缓存：同关键词不重复调 Pagefind
+          if (!cache || cache.q !== q) {
+            var search = await pf.search(q);
+            var results = (search && search.results) || [];
+            // 并发取数据（最多 30 条，避免串行 await 太慢）
+            var items = [];
+            var limited = results.slice(0, 30);
+            var datas = await Promise.all(limited.map(function (r) {
+              return typeof r.data === 'function' ? r.data() : Promise.resolve(r);
+            }));
+            for (var i = 0; i < datas.length; i++) {
+              var data = datas[i];
+              if (!data) continue;
+              var url = data.url || '#';
+              items.push({
+                url: url,
+                title: (data.meta && data.meta.title) ? data.meta.title : url,
+                excerpt: data.excerpt || '',
+                thumb: '',
+                slug: slugOf(url),
+              });
+            }
+            // 产品结果补缩略图
+            items.forEach(function (it) {
+              if (it.slug && catOfSlug[it.slug] !== undefined) {
+                var p = CATALOG.find(function (x) { return x.s === it.slug; });
+                if (p) it.thumb = thumbOf(p.i);
+              }
+            });
+            cache = { q: q, items: items };
+          }
+          // 分类过滤（非产品结果仅在 All 时保留）
+          var filtered = cache.items.filter(function (it) {
+            if (state.cat === 'all') return true;
+            return it.slug && catOfSlug[it.slug] === state.cat;
+          });
+          sortItems(filtered);
+          var summary = filtered.length + ' result' + (filtered.length === 1 ? '' : 's') +
+            ' for "' + q + '"' + (state.cat !== 'all' ? ' in ' + catNameOf(state.cat) : '');
+          renderItems(filtered, summary);
+        } catch (e) {
+          statusEl.textContent = 'Search is temporarily unavailable. Please try again later.';
+          statusEl.classList.remove('hidden');
+        }
+      }
+
+      // ---------- 无关键词：按分类浏览（直接走内嵌目录，不依赖 Pagefind） ----------
+      function browseCategory(cat) {
+        if (cat === 'all') {
+          resultsEl.innerHTML = '';
+          statusEl.textContent = 'Type a keyword to search, or pick a category to browse.';
+          statusEl.classList.remove('hidden');
+          countEl.textContent = '';
+          return;
+        }
+        var items = [];
+        CATALOG.forEach(function (p) {
+          if (p.c === cat) {
+            items.push({
+              url: '/products/' + p.s + '/',
+              title: p.n,
+              excerpt: '',
+              thumb: thumbOf(p.i),
+              slug: p.s,
+            });
+          }
+        });
+        sortItems(items);
+        renderItems(items, items.length + ' products in ' + catNameOf(cat));
+      }
+
+      function apply() {
+        if (state.q) {
+          runSearch(state.q);
+        } else {
+          browseCategory(state.cat);
+        }
+        syncUrl();
+      }
+
+      // ---------- URL 参数同步 ----------
+      function syncUrl() {
+        var params = new URLSearchParams();
+        if (state.q) params.set('q', state.q);
+        if (state.cat !== 'all') params.set('cat', state.cat);
+        if (state.sort !== 'relevance') params.set('sort', state.sort);
+        var qs = params.toString();
+        history.replaceState(null, '', qs ? '/search/?' + qs : '/search/');
+      }
+
+      // ---------- 搜索建议 ----------
+      function productSuggestions(q) {
+        if (!q) return [];
+        var ql = q.toLowerCase();
+        var scored = [];
+        CATALOG.forEach(function (p) {
+          var token = modelToken(p.n).toLowerCase();
+          var name = p.n.toLowerCase();
+          var score = -1;
+          if (token.indexOf(ql) === 0) score = 0;        // 型号前缀匹配（最优先）
+          else if (name.indexOf(ql) === 0) score = 1;    // 名称前缀
+          else if (name.indexOf(ql) > 0) score = 2;      // 名称包含
+          if (score >= 0) scored.push({ p: p, score: score, token: token });
+        });
+        scored.sort(function (a, b) {
+          if (a.score !== b.score) return a.score - b.score;
+          return a.token.length - b.token.length;
+        });
+        return scored.slice(0, 6).map(function (s) { return s.p; });
+      }
+
+      function keywordSuggestions(q) {
+        if (!q) return [];
+        var ql = q.toLowerCase();
+        var out = [];
+        // 高频词库前缀匹配（按词频已排序）
+        for (var i = 0; i < SUGGEST_WORDS.length && out.length < 5; i++) {
+          if (SUGGEST_WORDS[i].indexOf(ql) === 0) out.push(SUGGEST_WORDS[i]);
+        }
+        // 热门词兜底（去重）
+        for (var j = 0; j < HOT_WORDS.length && out.length < 5; j++) {
+          var w = HOT_WORDS[j].toLowerCase();
+          if (w.indexOf(ql) === 0 && out.indexOf(w) === -1) out.push(w);
+        }
+        return out.slice(0, 5);
+      }
+
+      async function showSuggestions(q) {
+        if (!q) {
+          suggestEl.classList.add('hidden');
+          suggestIndex = -1;
+          return;
+        }
+        var html = '';
+        var prods = productSuggestions(q);
+        if (prods.length) {
+          html += '<div class="px-4 pt-3 pb-1 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Products</div>';
+          prods.forEach(function (p, idx) {
+            html += '<button type="button" data-sug-type="product" data-sug-url="/products/' + p.s + '/" data-sug-idx="' + idx + '" class="sug-item w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#f5f5f7] transition-colors">' +
+              (p.i ? '<img src="' + thumbOf(p.i) + '" alt="" class="w-9 h-9 rounded-lg bg-[#f5f5f7] object-contain shrink-0" />' : '') +
+              '<span class="min-w-0"><span class="block text-[13px] text-[#1d1d1f] font-medium truncate">' + escapeHtml(p.n) + '</span>' +
+              '<span class="block text-[11px] text-[#86868b]">' + escapeHtml(catNameOf(p.c)) + ' · ' + escapeHtml(modelToken(p.n)) + '</span></span>' +
+              '<i class="fas fa-arrow-right text-[11px] text-[#c7c7cc] ml-auto shrink-0"></i></button>';
+          });
+        }
+        var words = keywordSuggestions(q);
+        if (words.length) {
+          html += '<div class="px-4 pt-3 pb-1 text-[11px] font-semibold text-[#86868b] uppercase tracking-wide">Keywords</div>';
+          words.forEach(function (w, idx) {
+            html += '<button type="button" data-sug-type="word" data-sug-word="' + escapeHtml(w) + '" data-sug-idx="' + (prods.length + idx) + '" class="sug-item w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#f5f5f7] transition-colors">' +
+              '<i class="fas fa-magnifying-glass text-[11px] text-[#86868b] w-4 shrink-0"></i>' +
+              '<span class="text-[13px] text-[#1d1d1f]">' + escapeHtml(w) + '</span></button>';
+          });
+        }
+        if (!html) {
+          suggestEl.classList.add('hidden');
+          suggestIndex = -1;
+          return;
+        }
+        suggestEl.innerHTML = html;
+        suggestEl.classList.remove('hidden');
+        suggestIndex = -1;
+      }
+
+      function hideSuggestions() {
+        suggestEl.classList.add('hidden');
+        suggestIndex = -1;
+      }
+
+      function highlightSuggestion(idx) {
+        var items = suggestEl.querySelectorAll('.sug-item');
+        suggestIndex = idx;
+        for (var i = 0; i < items.length; i++) {
+          items[i].classList.toggle('bg-[#f5f5f7]', i === idx);
+        }
+      }
+
+      function activateSuggestion() {
+        if (suggestIndex < 0) return;
+        var items = suggestEl.querySelectorAll('.sug-item');
+        if (suggestIndex >= items.length) return;
+        var el = items[suggestIndex];
+        if (el.getAttribute('data-sug-type') === 'product') {
+          window.location.href = el.getAttribute('data-sug-url');
+        } else {
+          input.value = el.getAttribute('data-sug-word');
+          hideSuggestions();
+          state.q = input.value.trim();
+          runSearch(state.q);
+          syncUrl();
+        }
+      }
+
+      // ---------- 事件绑定 ----------
+      var debounceTimer = null;
+      var suggestTimer = null;
+
+      input.addEventListener('input', function () {
+        var q = input.value.trim();
+        clearTimeout(debounceTimer);
+        clearTimeout(suggestTimer);
+        if (q.length < 2) {
+          resultsEl.innerHTML = '';
+          countEl.textContent = '';
+          statusEl.classList.add('hidden');
+          state.q = '';
+          if (state.cat === 'all') {
+            statusEl.textContent = 'Type a keyword to search, or pick a category to browse.';
+            statusEl.classList.remove('hidden');
+          } else {
+            browseCategory(state.cat);
+          }
+          syncUrl();
+        } else {
+          state.q = q;
+          debounceTimer = setTimeout(function () { runSearch(q); }, 350);
+        }
+        suggestTimer = setTimeout(function () {
+          showSuggestions(input.value.trim()).then(function () {
+            // 建议下拉可见 → 推迟自动搜索（350ms→900ms），给用户点击建议的窗口
+            if (!suggestEl.classList.contains('hidden')) {
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(function () { runSearch(state.q); }, 900);
+            }
+          });
+        }, 120);
+      });
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          if (!suggestEl.classList.contains('hidden') && suggestIndex >= 0) {
+            e.preventDefault();
+            activateSuggestion();
+            return;
+          }
+          clearTimeout(debounceTimer);
+          var q = input.value.trim();
+          if (q.length >= 2) {
+            state.q = q;
+            runSearch(q);
+            syncUrl();
+          }
+          hideSuggestions();
+        } else if (e.key === 'ArrowDown') {
+          if (suggestEl.classList.contains('hidden')) return;
+          e.preventDefault();
+          var n = suggestEl.querySelectorAll('.sug-item').length;
+          highlightSuggestion(suggestIndex >= n - 1 ? 0 : suggestIndex + 1);
+        } else if (e.key === 'ArrowUp') {
+          if (suggestEl.classList.contains('hidden')) return;
+          e.preventDefault();
+          var m = suggestEl.querySelectorAll('.sug-item').length;
+          highlightSuggestion(suggestIndex <= 0 ? m - 1 : suggestIndex - 1);
+        } else if (e.key === 'Escape') {
+          hideSuggestions();
+        }
+      });
+
+      input.addEventListener('blur', function () {
+        setTimeout(hideSuggestions, 150); // 延迟，让点击建议项生效
+      });
+
+      // 点击页面其它任意区域（含分类 chips / 排序按钮）→ 立即关闭建议下拉，避免遮挡
+      document.addEventListener('mousedown', function (e) {
+        if (!suggestEl.contains(e.target)) hideSuggestions();
+      });
+      // 触摸设备同样处理
+      document.addEventListener('touchstart', function (e) {
+        if (!suggestEl.contains(e.target)) hideSuggestions();
+      }, { passive: true });
+
+      // 建议项点击（事件委托）；点下拉空白区 → 关闭
+      suggestEl.addEventListener('mousedown', function (e) {
+        var el = e.target.closest('.sug-item');
+        if (!el) { hideSuggestions(); return; }
+        e.preventDefault();
+        if (el.getAttribute('data-sug-type') === 'product') {
+          window.location.href = el.getAttribute('data-sug-url');
+        } else {
+          input.value = el.getAttribute('data-sug-word');
+          hideSuggestions();
+          state.q = input.value.trim();
+          runSearch(state.q);
+          syncUrl();
+        }
+      });
+
+      // 分类 chips 切换
+      chipsWrap.addEventListener('click', function (e) {
+        var chip = e.target.closest('.cat-chip');
+        if (!chip) return;
+        var cat = chip.getAttribute('data-cat');
+        if (cat === state.cat) return;
+        state.cat = cat;
+        chipsWrap.querySelectorAll('.cat-chip').forEach(function (c) {
+          var active = c.getAttribute('data-cat') === cat;
+          c.setAttribute('aria-selected', active ? 'true' : 'false');
+          c.className = 'cat-chip shrink-0 rounded-full px-4 py-2 text-[13px] font-medium border transition-colors ' +
+            (active ? 'bg-[#0071e3] text-white border-transparent' : 'bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]');
+        });
+        apply();
+      });
+
+      // 排序切换
+      var sortBtns = document.querySelectorAll('.sort-btn');
+      sortBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          state.sort = btn.getAttribute('data-sort');
+          sortBtns.forEach(function (b) {
+            var active = b === btn;
+            b.className = 'sort-btn rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors ' +
+              (active ? 'bg-[#0071e3]/10 text-[#0071e3] border-transparent' : 'bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]');
+          });
+          apply();
+        });
+      });
+
+      // ---------- 初始化（URL 参数 ?q=&cat=&sort=） ----------
+      var urlParams = new URLSearchParams(window.location.search);
+      var initialQ = urlParams.get('q');
+      var initialCat = urlParams.get('cat');
+      var initialSort = urlParams.get('sort');
+      if (initialSort && ['relevance', 'name-asc', 'name-desc'].indexOf(initialSort) >= 0) {
+        state.sort = initialSort;
+        sortBtns.forEach(function (b) {
+          var active = b.getAttribute('data-sort') === state.sort;
+          b.className = 'sort-btn rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors ' +
+            (active ? 'bg-[#0071e3]/10 text-[#0071e3] border-transparent' : 'bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]');
+        });
+      }
+      if (initialCat && CATEGORIES.some(function (c) { return c.key === initialCat; })) {
+        state.cat = initialCat;
+        chipsWrap.querySelectorAll('.cat-chip').forEach(function (c) {
+          var active = c.getAttribute('data-cat') === state.cat;
+          c.setAttribute('aria-selected', active ? 'true' : 'false');
+          c.className = 'cat-chip shrink-0 rounded-full px-4 py-2 text-[13px] font-medium border transition-colors ' +
+            (active ? 'bg-[#0071e3] text-white border-transparent' : 'bg-white text-[#1d1d1f] border-[#e8e8ed] hover:bg-[#f5f5f7]');
+        });
+      }
+      if (initialQ) {
+        input.value = initialQ;
+        state.q = initialQ;
+        runSearch(initialQ);
+      } else if (state.cat !== 'all') {
+        browseCategory(state.cat);
+      } else {
+        statusEl.textContent = 'Type a keyword to search, or pick a category to browse.';
+        statusEl.classList.remove('hidden');
+      }
+      }
+      // 页面完全加载后再启动（确保 Pagefind 模块与索引就绪）
+      if (document.readyState === 'complete') {
+        boot();
+      } else {
+        window.addEventListener('load', boot);
+      }
+    })();
+  </script>
+
+  <style is:inline>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</Layout>

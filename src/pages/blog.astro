@@ -1,0 +1,187 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getPosts } from '../data/posts';
+
+const posts = getPosts();
+
+const blogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'IPTVStream Blog',
+  url: 'https://www.iptv-demo.example.com/blog/',
+  description: 'Guides and expert advice on IPTV services, setup tutorials, broadcast equipment and industry insights.',
+  publisher: { '@type': 'Organization', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+};
+
+const breadcrumbs = [{ name: 'Blog', url: '/blog/' }];
+
+// 分类配色（Apple 蓝系克制渐变）
+const catStyle = {
+  'IPTV Guide': { badge: 'bg-[#0071e3]/10 text-[#0071e3]', grad: 'from-[#0071e3] to-[#0a84ff]', icon: 'fas fa-tv' },
+  'Setup Guide': { badge: 'bg-[#34c759]/10 text-[#248a3d]', grad: 'from-[#34c759] to-[#30d158]', icon: 'fas fa-plug' },
+  'Troubleshooting': { badge: 'bg-[#ff9f0a]/10 text-[#c93400]', grad: 'from-[#ff9f0a] to-[#ffb340]', icon: 'fas fa-wrench' },
+  'Business': { badge: 'bg-[#5e5ce6]/10 text-[#5e5ce6]', grad: 'from-[#5e5ce6] to-[#7d7aff]', icon: 'fas fa-briefcase' },
+  'Broadcast Equipment': { badge: 'bg-[#ff375f]/10 text-[#d70015]', grad: 'from-[#ff375f] to-[#ff6b81]', icon: 'fas fa-tower-broadcast' },
+};
+const defCat = { badge: 'bg-[#0071e3]/10 text-[#0071e3]', grad: 'from-[#0071e3] to-[#0a84ff]', icon: 'fas fa-file-lines' };
+const catOf = (name) => catStyle[name] || defCat;
+const categories = [...new Set(posts.map((p) => p.category))];
+const featured = posts[0];
+const rest = posts.slice(1);
+---
+
+<Layout
+  title="Blog — IPTV Guides, Setup Tutorials & Broadcast Tips | IPTVStream"
+  description="Expert guides on choosing IPTV services, setting up IPTV on Fire Stick and Smart TV, troubleshooting buffering, hotel IPTV systems and FM broadcast equipment."
+  schema={blogSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- ===== 页面标题 ===== -->
+  <section class="bg-[#f5f5f7] py-16 lg:py-24 text-center border-b border-[#e8e8ed]" aria-label="Blog overview">
+    <div class="container mx-auto max-w-3xl px-4">
+      <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Blog</p>
+      <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">Guides, Tips & <span class="gradient-text">Expert Advice</span></h1>
+      <p class="text-[#6e6e73] text-lg">Everything you need to know about IPTV services, setup, troubleshooting and broadcast equipment.</p>
+    </div>
+  </section>
+
+  <!-- ===== 置顶精选大卡（最新文章） ===== -->
+  {
+    featured && (
+      <section class="pt-14 lg:pt-20 bg-white" aria-label="Featured article">
+        <div class="container mx-auto max-w-7xl px-4">
+          <a href={`/blog/${featured.slug}/`} class="group block bg-gradient-to-br from-[#1d1d1f] to-[#3a3a3c] rounded-3xl overflow-hidden reveal">
+            <div class="grid lg:grid-cols-2 items-stretch">
+              <div class="p-10 lg:p-14 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-5">
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/15 text-white">
+                    <i class="fas fa-star text-xs"></i> Featured
+                  </span>
+                  <span class={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${catOf(featured.category).badge}`}>
+                    <i class={`${catOf(featured.category).icon} text-xs`}></i>{featured.category}
+                  </span>
+                </div>
+                <h2 class="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight mb-4 group-hover:text-[#64d2ff] transition-colors">
+                  {featured.title}
+                </h2>
+                <p class="text-white/70 text-lg leading-relaxed mb-7 line-clamp-3">{featured.excerpt}</p>
+                <div class="flex items-center gap-5 text-white/60 text-sm">
+                  <span><i class="far fa-calendar mr-2"></i>{featured.date}</span>
+                  <span><i class="far fa-clock mr-2"></i>{featured.readTime}</span>
+                </div>
+                <span class="inline-flex items-center gap-2 mt-8 text-white font-semibold">
+                  Read Article <i class="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1.5"></i>
+                </span>
+              </div>
+              <div class="relative min-h-[280px] lg:min-h-0">
+                <img src={`/images/blog/${featured.slug}.jpg`} alt={featured.title} loading="eager"
+                  class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" />
+                <div class="absolute inset-0 bg-gradient-to-r from-[#1d1d1f] via-[#1d1d1f]/30 to-transparent lg:bg-gradient-to-r"></div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ===== 分类筛选 + 文章网格 ===== -->
+  <section class="py-14 lg:py-20 bg-white" aria-label="Blog posts">
+    <div class="container mx-auto max-w-7xl px-4">
+      <!-- 分类筛选 -->
+      <div class="flex flex-wrap items-center gap-2.5 mb-10 justify-center" id="blog-filters">
+        <button type="button" data-filter="all" class="blog-filter shrink-0 text-sm font-semibold text-white bg-[#1d1d1f] px-5 py-2 rounded-full transition-colors">
+          All Articles <span class="opacity-70 ml-1">({posts.length})</span>
+        </button>
+        {
+          categories.map((c) => (
+            <button type="button" data-filter={c} class="blog-filter shrink-0 text-sm font-semibold text-[#6e6e73] bg-[#f5f5f7] hover:bg-[#e8e8ed] px-5 py-2 rounded-full transition-colors">
+              {c} <span class="opacity-60 ml-1">({posts.filter((p) => p.category === c).length})</span>
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="blog-grid">
+        {
+          rest.map((post, i) => {
+            const cs = catOf(post.category);
+            return (
+              <article data-category={post.category} class="blog-card group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-xl hover:shadow-[#1d1d1f]/5 hover:-translate-y-1 transition-all duration-300 reveal flex flex-col">
+                <a href={`/blog/${post.slug}/`} class="block overflow-hidden aspect-[16/10] relative">
+                  {
+                    i % 3 === 0 ? (
+                      // 交替样式 1：渐变图标卡（无图）
+                      <div class={`w-full h-full bg-gradient-to-br ${cs.grad} opacity-90 flex items-center justify-center group-hover:opacity-100 transition-opacity`}>
+                        <i class={`${cs.icon} text-6xl text-white/90`}></i>
+                      </div>
+                    ) : (
+                      <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} loading="lazy"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    )
+                  }
+                  <span class="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/95 backdrop-blur shadow-sm">
+                    <i class={`${cs.icon} text-xs ${cs.badge.split(' ')[1]}`}></i>{post.category}
+                  </span>
+                </a>
+                <div class="p-6 flex flex-col flex-1">
+                  <div class="flex items-center gap-3 mb-3 text-xs text-[#86868b]">
+                    <span><i class="far fa-calendar mr-1.5"></i>{post.date}</span>
+                    <span><i class="far fa-clock mr-1.5"></i>{post.readTime}</span>
+                  </div>
+                  <h2 class="text-lg font-semibold text-[#1d1d1f] mb-2 tracking-tight leading-snug line-clamp-2">
+                    <a href={`/blog/${post.slug}/`} class="group-hover:text-[#0071e3] transition-colors">{post.title}</a>
+                  </h2>
+                  <p class="text-sm text-[#6e6e73] leading-relaxed line-clamp-3 mb-5">{post.excerpt}</p>
+                  <div class="mt-auto">
+                    <a href={`/blog/${post.slug}/`} class="inline-flex items-center gap-2 text-[#0071e3] text-sm font-semibold">
+                      Read More <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="py-16 lg:py-20 bg-[#f5f5f7]" aria-label="Subscribe or contact">
+    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Questions About <span class="gradient-text">IPTV?</span></h2>
+      <p class="text-[#6e6e73] text-lg mb-8">Can't find the answer in our guides? Our team is here to help.</p>
+      <a href="/contact/" class="btn-primary text-base px-10 py-4">
+        <i class="fas fa-comments"></i> Contact Us
+      </a>
+    </div>
+  </section>
+
+  <!-- 分类筛选交互（原生 JS） -->
+  <script is:inline>
+    (function () {
+      var filters = document.querySelectorAll('.blog-filter');
+      var cards = document.querySelectorAll('.blog-card');
+      if (!filters.length || !cards.length) return;
+      filters.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var f = btn.getAttribute('data-filter');
+          // 按钮高亮
+          filters.forEach(function (b) {
+            if (b === btn) {
+              b.className = 'blog-filter shrink-0 text-sm font-semibold text-white bg-[#1d1d1f] px-5 py-2 rounded-full transition-colors';
+            } else {
+              b.className = 'blog-filter shrink-0 text-sm font-semibold text-[#6e6e73] bg-[#f5f5f7] hover:bg-[#e8e8ed] px-5 py-2 rounded-full transition-colors';
+            }
+          });
+          // 卡片过滤
+          cards.forEach(function (card) {
+            var show = f === 'all' || card.getAttribute('data-category') === f;
+            card.style.display = show ? '' : 'none';
+          });
+        });
+      });
+    })();
+  </script>
+</Layout>

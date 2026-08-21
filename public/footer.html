@@ -1,0 +1,70 @@
+<!-- ============================================================
+  footer.html — 公共页脚（模块化独立文件）V4 明亮白色
+  由 js/main.js 用 fetch 动态引入，占位符 <div id="footer"></div>
+  ============================================================ -->
+<footer class="border-t border-slate-100 bg-white mt-auto">
+  <div class="container mx-auto max-w-7xl px-4 py-16">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
+      <!-- 品牌 -->
+      <div class="col-span-2 md:col-span-1">
+        <a href="/" class="flex items-center gap-2.5 mb-5">
+          <img src="/images/logo.svg" alt="IPTVStream logo" width="36" height="36" class="w-9 h-9">
+          <span class="text-lg font-bold text-slate-900 tracking-tight">IPTV<span class="gradient-text">Stream</span></span>
+        </a>
+        <p class="text-[15px] leading-relaxed text-slate-500">
+          Professional digital TV headend equipment manufacturer from China. Factory-direct encoders, modulators, IP gateways, transmitters and antennas since 2005.
+        </p>
+        <div class="flex gap-3 mt-5">
+          <a href="#" aria-label="Facebook" class="w-9 h-9 inline-flex items-center justify-center bg-slate-100 hover:bg-[#6d5ef2] hover:text-white rounded-full transition-colors text-slate-500"><i class="fab fa-facebook-f text-[15px]"></i></a>
+          <a href="#" aria-label="Twitter / X" class="w-9 h-9 inline-flex items-center justify-center bg-slate-100 hover:bg-[#6d5ef2] hover:text-white rounded-full transition-colors text-slate-500"><i class="fab fa-twitter text-[15px]"></i></a>
+          <a href="#" aria-label="Telegram" class="w-9 h-9 inline-flex items-center justify-center bg-slate-100 hover:bg-[#6d5ef2] hover:text-white rounded-full transition-colors text-slate-500"><i class="fab fa-telegram-plane text-[15px]"></i></a>
+          <a href="#" aria-label="WhatsApp" class="w-9 h-9 inline-flex items-center justify-center bg-slate-100 hover:bg-[#6d5ef2] hover:text-white rounded-full transition-colors text-slate-500"><i class="fab fa-whatsapp text-[15px]"></i></a>
+        </div>
+      </div>
+
+      <!-- 解决方案 -->
+      <nav aria-label="Footer - Solutions">
+        <h3 class="text-slate-900 font-semibold text-[15px] mb-5">Solutions</h3>
+        <ul class="space-y-3 text-[15px]">
+          <li><a href="/solutions/#digital-headend" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Digital Headend</a></li>
+          <li><a href="/solutions/#iptv" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">IPTV Solution</a></li>
+          <li><a href="/solutions/#wireless" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Wireless Transfer</a></li>
+          <li><a href="/solutions/#internet" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Internet Transfer</a></li>
+        </ul>
+      </nav>
+
+      <!-- 公司 -->
+      <nav aria-label="Footer - Company">
+        <h3 class="text-slate-900 font-semibold text-[15px] mb-5">Company</h3>
+        <ul class="space-y-3 text-[15px]">
+          <li><a href="/about/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">About Us</a></li>
+          <li><a href="/contact/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Contact Us</a></li>
+          <li><a href="/blog/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Blog</a></li>
+        <li><a href="/faq/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">FAQ</a></li>
+          <li><a href="/contact/" class="text-[15px] text-slate-500 hover:text-[#0071e3] transition-colors">Get a Quote</a></li>
+        </ul>
+      </nav>
+
+      <!-- 合法 -->
+      <nav aria-label="Footer - Legal">
+        <h3 class="text-slate-900 font-semibold text-[15px] mb-5">Legal</h3>
+        <ul class="space-y-3 text-[15px]">
+          <li><a href="/terms/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Terms of Service</a></li>
+          <li><a href="/privacy/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Privacy Policy</a></li>
+          <li><a href="/refund/" class="text-[15px] text-slate-500 hover:text-[#6d5ef2] transition-colors">Refund Policy</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="border-t border-slate-100 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-slate-400">
+      <p>© <time datetime="2026">2026</time> IPTVStream. All rights reserved.</p>
+      <p>
+        <a href="/terms/" class="hover:text-slate-600">Terms</a>
+        <span class="mx-2">·</span>
+        <a href="/privacy/" class="hover:text-slate-600">Privacy</a>
+        <span class="mx-2">·</span>
+        <a href="/sitemap-index.xml" class="hover:text-slate-600">Sitemap</a>
+      </p>
+    </div>
+  </div>
+</footer>

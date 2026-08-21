@@ -1,0 +1,439 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPosts } from '../../data/posts';
+import { PRODUCTS } from '../../data/products';
+
+export function getStaticPaths() {
+  return getPosts().map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+
+// 根据文章分类推荐相关产品
+function relatedProducts(category) {
+  const kw = {
+    'IPTV Guide': ['IPTV Gateway', 'IP Gateway'],
+    'Setup Guide': ['IPTV Gateway', 'Set Top', 'STB'],
+    'Troubleshooting': ['Encoder', 'Modulator'],
+    'Business': ['IPTV Gateway', 'Gateway Server'],
+    'Broadcast Equipment': ['FM Transmitter', 'Transmitter', 'Antenna'],
+  };
+  const keys = kw[category] || ['Encoder', 'Modulator'];
+  return PRODUCTS.filter((p) => keys.some((k) => p.name.includes(k))).slice(0, 3);
+}
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.title,
+  description: post.excerpt,
+  datePublished: post.date,
+  dateModified: post.date,
+  author: { '@type': 'Organization', name: 'IPTVStream' },
+  publisher: { '@type': 'Organization', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+  mainEntityOfPage: `https://www.iptv-demo.example.com/blog/${post.slug}/`,
+  articleSection: post.category,
+  image: `https://www.iptv-demo.example.com/images/blog/${post.slug}.jpg`,
+};
+
+const breadcrumbs = [
+  { name: 'Blog', url: '/blog/' },
+  { name: post.title.slice(0, 30), url: `/blog/${post.slug}/` },
+];
+
+// 文章 slug 化（用于目录锚点）
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+// 收集目录（## 标题）
+const toc = [];
+for (const line of post.content.split('\n')) {
+  const m = line.match(/^##\s+(.+)/);
+  if (m) toc.push({ text: m[1], id: slugify(m[1]) });
+}
+
+// 简单 markdown 渲染：## 标题、- 列表、> 引用、**粗体**、代码块、表格、图片
+function renderMarkdown(md) {
+  const lines = md.trim().split('\n');
+  let html = '';
+  let inList = false;
+  let inCode = false;
+  let codeBuf = [];
+  let tableBuf = [];
+
+  const flushTable = () => {
+    if (tableBuf.length === 0) return;
+    const headerCells = tableBuf[0].split('|').map((c) => c.trim()).filter((c) => c);
+    const dataRows = tableBuf.slice(2).map((row) =>
+      row.split('|').map((c) => c.trim()).filter((c) => c)
+    );
+    html += `<div class="overflow-x-auto my-8 rounded-2xl border border-[#e8e8ed]"><table class="w-full text-sm">`;
+    html += `<thead><tr>${headerCells.map((c) => `<th class="px-5 py-3.5 bg-[#f5f5f7] font-semibold text-[#1d1d1f] text-left">${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</th>`).join('')}</tr></thead>`;
+    html += `<tbody>${dataRows.map((row) => `<tr class="hover:bg-[#fafafc]">${row.map((c) => `<td class="px-5 py-3.5 text-[#6e6e73] border-t border-[#e8e8ed]">${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    html += `</table></div>`;
+    tableBuf = [];
+  };
+
+  for (const line of lines) {
+    if (line.trim().startsWith('```')) {
+      if (inCode) {
+        html += `<pre class="bg-[#1d1d1f] text-[#f5f5f7] p-5 rounded-2xl overflow-x-auto text-sm my-6 leading-relaxed"><code>${codeBuf.join('\n')}</code></pre>`;
+        codeBuf = [];
+        inCode = false;
+      } else {
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) {
+      codeBuf.push(line);
+      continue;
+    }
+
+    if (line.trim().startsWith('|')) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      tableBuf.push(line.trim());
+      continue;
+    }
+    flushTable();
+
+    const imgMatch = line.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      const alt = imgMatch[1];
+      let src = imgMatch[2];
+      // 相对路径自动补全到 /images/blog-inline/
+      if (!src.startsWith('/') && !src.startsWith('http')) {
+        src = '/images/blog-inline/' + src.split('/').pop();
+      }
+      html += `<figure class="my-10"><img src="${src}" alt="${alt}" loading="lazy" class="w-full rounded-2xl shadow-lg border border-[#e8e8ed]" /><figcaption class="text-center text-sm text-[#86868b] mt-3">${alt}</figcaption></figure>\n`;
+      continue;
+    }
+
+    if (!line.trim()) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      continue;
+    }
+
+    if (line.startsWith('## ')) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      const t = line.slice(3);
+      const id = slugify(t);
+      html += `<h2 id="${id}" class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] tracking-tight mt-14 mb-5 scroll-mt-24">${t}</h2>\n`;
+      continue;
+    }
+    if (line.startsWith('### ')) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      html += `<h3 class="text-xl font-semibold text-[#1d1d1f] tracking-tight mt-10 mb-4">${line.slice(4)}</h3>\n`;
+      continue;
+    }
+
+    if (line.trim().startsWith('- ')) {
+      if (!inList) { html += '<ul class="list-none space-y-3 my-6">\n'; inList = true; }
+      let item = line.trim().slice(2);
+      item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html += `<li class="flex gap-3 text-[#6e6e73] leading-relaxed"><span class="text-[#0071e3] mt-1 shrink-0"><i class="fas fa-check-circle text-sm"></i></span><span>${item}</span></li>\n`;
+      continue;
+    }
+
+    if (line.trim().startsWith('> ')) {
+      if (inList) { html += '</ul>\n'; inList = false; }
+      const quote = line.trim().slice(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html += `<blockquote class="border-l-4 border-[#0071e3] bg-[#0071e3]/5 rounded-r-2xl px-6 py-5 my-8 text-lg text-[#1d1d1f] font-medium">${quote}</blockquote>\n`;
+      continue;
+    }
+
+    if (inList) { html += '</ul>\n'; inList = false; }
+    const bold = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html += `<p class="text-[#3a3a3c] text-lg leading-[1.9] my-5">${bold}</p>\n`;
+  }
+  flushTable();
+  if (inList) html += '</ul>\n';
+  if (inCode) html += `<pre class="bg-[#1d1d1f] text-[#f5f5f7] p-5 rounded-2xl overflow-x-auto text-sm my-6"><code>${codeBuf.join('\n')}</code></pre>`;
+  return html;
+}
+
+const contentHtml = renderMarkdown(post.content);
+
+// 上一篇/下一篇
+const allPosts = getPosts();
+const idx = allPosts.findIndex((p) => p.slug === post.slug);
+const prev = idx > 0 ? allPosts[idx - 1] : null;
+const next = idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
+---
+
+<Layout
+  title={`${post.title} | IPTVStream Blog`}
+  description={post.excerpt}
+  schema={articleSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- 阅读进度条 -->
+  <div id="reading-progress" class="fixed top-0 left-0 h-[3px] bg-[#0071e3] z-[60] w-0" style="box-shadow: 0 0 8px rgba(0,113,227,.4)"></div>
+
+  <!-- ===== 文章头图 ===== -->
+  <div class="relative bg-[#1d1d1f] h-[280px] lg:h-[380px] overflow-hidden" aria-hidden="true">
+    <img src={`/images/blog/${post.slug}.jpg`} alt="" loading="eager"
+      class="absolute inset-0 w-full h-full object-cover opacity-40" />
+    <div class="absolute inset-0 bg-gradient-to-t from-[#1d1d1f] via-[#1d1d1f]/60 to-[#1d1d1f]/20"></div>
+  </div>
+
+  <!-- ===== 文章主体 ===== -->
+  <article class="bg-white pb-16 lg:pb-24 -mt-16 lg:-mt-20 relative z-10">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid lg:grid-cols-[240px_1fr] gap-10">
+        <!-- 目录（桌面端固定） -->
+        <aside class="hidden lg:block">
+          <div class="sticky top-24">
+            {
+              toc.length > 0 && (
+                <nav class="bg-[#f5f5f7] rounded-2xl p-5" aria-label="Table of contents">
+                  <p class="text-xs font-bold uppercase tracking-wider text-[#86868b] mb-4">
+                    <i class="fas fa-list-ul mr-1.5 text-[#0071e3]"></i>On This Page
+                  </p>
+                  <ul class="space-y-2.5 text-sm" id="toc-list">
+                    {
+                      toc.map((t, i) => (
+                        <li>
+                          <a href={`#${t.id}`} data-toc-id={t.id}
+                            class={`toc-link block text-[#6e6e73] hover:text-[#0071e3] transition-colors leading-snug ${i === 0 ? 'font-semibold text-[#1d1d1f]' : ''}`}>
+                            {t.text.slice(0, 38)}{t.text.length > 38 ? '…' : ''}
+                          </a>
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </nav>
+              )
+            }
+            <div class="mt-6 bg-gradient-to-br from-[#1d1d1f] to-[#3a3a3c] rounded-2xl p-5 text-center">
+              <p class="text-white font-semibold text-sm mb-1">Need Equipment?</p>
+              <p class="text-white/60 text-xs mb-4">Browse 190+ headend products</p>
+              <a href="/products/" class="inline-flex items-center gap-1.5 bg-white text-[#1d1d1f] text-xs font-semibold px-4 py-2 rounded-full hover:bg-[#f5f5f7] transition-colors">
+                View Catalog <i class="fas fa-arrow-right text-[10px]"></i>
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 正文 -->
+        <div class="max-w-3xl">
+          <!-- 头部信息 -->
+          <div class="bg-white rounded-3xl border border-[#e8e8ed] shadow-sm p-8 lg:p-10 mb-8">
+            <div class="flex flex-wrap items-center gap-3 mb-5">
+              <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#0071e3] bg-[#0071e3]/10 px-3.5 py-1.5 rounded-full">{post.category}</span>
+              <span class="text-sm text-[#86868b]"><i class="far fa-calendar mr-1.5"></i>{post.date}</span>
+              <span class="text-sm text-[#86868b]">·</span>
+              <span class="text-sm text-[#86868b]"><i class="far fa-clock mr-1.5"></i>{post.readTime}</span>
+            </div>
+            <h1 class="text-3xl lg:text-[2.75rem] font-bold text-[#1d1d1f] tracking-tight leading-[1.15] mb-6">{post.title}</h1>
+            <div class="flex items-center gap-3 border-t border-[#e8e8ed] pt-5">
+              <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#0071e3] to-[#0a84ff] flex items-center justify-center text-white font-bold text-sm shadow-md">IP</div>
+              <div>
+                <p class="text-sm font-semibold text-[#1d1d1f]">IPTVStream Team</p>
+                <p class="text-xs text-[#86868b]">Broadcast & IPTV Experts</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 顶部 上一篇/下一篇 导航 -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+            {
+              prev ? (
+                <a href={`/blog/${prev.slug}/`} class="group inline-flex items-center gap-2 bg-white border border-[#e8e8ed] hover:border-[#0071e3] hover:bg-[#f5f5f7] rounded-full pl-2 pr-4 py-2 transition-all">
+                  <span class="w-8 h-8 rounded-full bg-[#f5f5f7] text-[#6e6e73] group-hover:bg-[#0071e3] group-hover:text-white inline-flex items-center justify-center transition-colors">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                  </span>
+                  <span class="text-sm font-semibold text-[#1d1d1f] group-hover:text-[#0071e3] transition-colors">Previous</span>
+                </a>
+              ) : (
+                <span></span>
+              )
+            }
+            {
+              next ? (
+                <a href={`/blog/${next.slug}/`} class="group inline-flex items-center gap-2 bg-white border border-[#e8e8ed] hover:border-[#0071e3] hover:bg-[#f5f5f7] rounded-full pl-4 pr-2 py-2 transition-all ml-auto">
+                  <span class="text-sm font-semibold text-[#1d1d1f] group-hover:text-[#0071e3] transition-colors">Next</span>
+                  <span class="w-8 h-8 rounded-full bg-[#f5f5f7] text-[#6e6e73] group-hover:bg-[#0071e3] group-hover:text-white inline-flex items-center justify-center transition-colors">
+                    <i class="fas fa-arrow-right text-xs"></i>
+                  </span>
+                </a>
+              ) : (
+                <span></span>
+              )
+            }
+          </div>
+
+          <!-- 正文内容 -->
+          <div class="blog-content px-1" set:html={contentHtml}></div>
+
+          <!-- 分享 -->
+          <div class="flex items-center gap-3 border-y border-[#e8e8ed] py-5 my-10">
+            <span class="text-sm font-semibold text-[#1d1d1f]">Share:</span>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.iptv-demo.example.com/blog/${post.slug}/`)}`} target="_blank" rel="noopener"
+              class="w-9 h-9 rounded-full bg-[#f5f5f7] text-[#6e6e73] hover:text-white hover:bg-[#1877f2] inline-flex items-center justify-center transition-colors" aria-label="Share on Facebook">
+              <i class="fab fa-facebook-f text-sm"></i>
+            </a>
+            <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.iptv-demo.example.com/blog/${post.slug}/`)}&text=${encodeURIComponent(post.title)}`} target="_blank" rel="noopener"
+              class="w-9 h-9 rounded-full bg-[#f5f5f7] text-[#6e6e73] hover:text-white hover:bg-[#000000] inline-flex items-center justify-center transition-colors" aria-label="Share on X">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.iptv-demo.example.com/blog/${post.slug}/`)}`} target="_blank" rel="noopener"
+              class="w-9 h-9 rounded-full bg-[#f5f5f7] text-[#6e6e73] hover:text-white hover:bg-[#0a66c2] inline-flex items-center justify-center transition-colors" aria-label="Share on LinkedIn">
+              <i class="fab fa-linkedin-in text-sm"></i>
+            </a>
+            <a href={`https://wa.me/?text=${encodeURIComponent(post.title + ' ' + `https://www.iptv-demo.example.com/blog/${post.slug}/`)}`} target="_blank" rel="noopener"
+              class="w-9 h-9 rounded-full bg-[#f5f5f7] text-[#6e6e73] hover:text-white hover:bg-[#25d366] inline-flex items-center justify-center transition-colors" aria-label="Share on WhatsApp">
+              <i class="fab fa-whatsapp text-sm"></i>
+            </a>
+          </div>
+
+          <!-- 上一篇/下一篇 -->
+          <div class="grid sm:grid-cols-2 gap-4 mb-10">
+            {
+              prev ? (
+                <a href={`/blog/${prev.slug}/`} class="group bg-[#f5f5f7] hover:bg-[#e8e8ed] rounded-2xl p-5 transition-colors">
+                  <p class="text-xs text-[#86868b] mb-2"><i class="fas fa-arrow-left mr-1.5"></i>Previous</p>
+                  <p class="text-sm font-semibold text-[#1d1d1f] leading-snug group-hover:text-[#0071e3] transition-colors line-clamp-2">{prev.title}</p>
+                </a>
+              ) : (
+                <div></div>
+              )
+            }
+            {
+              next ? (
+                <a href={`/blog/${next.slug}/`} class="group bg-[#f5f5f7] hover:bg-[#e8e8ed] rounded-2xl p-5 text-right transition-colors">
+                  <p class="text-xs text-[#86868b] mb-2">Next <i class="fas fa-arrow-right ml-1.5"></i></p>
+                  <p class="text-sm font-semibold text-[#1d1d1f] leading-snug group-hover:text-[#0071e3] transition-colors line-clamp-2">{next.title}</p>
+                </a>
+              ) : (
+                <div></div>
+              )
+            }
+          </div>
+
+          <!-- 文章底部 CTA -->
+          <div class="bg-[#f5f5f7] rounded-3xl border border-[#e8e8ed] p-8 lg:p-10 text-center">
+            <h3 class="text-2xl font-bold text-[#1d1d1f] mb-2">Need a Custom <span class="gradient-text">IPTV or Broadcast Solution?</span></h3>
+            <p class="text-[#6e6e73] text-lg mb-6">Browse our equipment catalog or talk to our engineers.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="/products/" class="btn-primary text-base px-10 py-4"><i class="fas fa-box"></i> Browse Products</a>
+              <a href="/contact/" class="btn-ghost text-base px-10 py-4"><i class="fas fa-comments"></i> Talk to Us</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ===== 相关产品推荐 ===== -->
+  {
+    (() => {
+      const rel = relatedProducts(post.category);
+      if (!rel.length) return null;
+      return (
+        <section class="py-14 lg:py-18 bg-white border-t border-[#e8e8ed]" aria-label="Recommended equipment">
+          <div class="container mx-auto max-w-7xl px-4">
+            <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] tracking-tight mb-8">Recommended <span class="gradient-text">Equipment</span></h2>
+            <div class="grid sm:grid-cols-3 gap-5">
+              {
+                rel.map((p) => (
+                  <a href={`/products/${p.slug}/`} class="group bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg hover:border-transparent transition-all">
+                    <div class="h-36 bg-[#f5f5f7] flex items-center justify-center overflow-hidden">
+                      <img src={p.image} alt={p.name} loading="lazy"
+                        class="max-h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105" />
+                    </div>
+                    <div class="p-5">
+                      <h4 class="text-sm font-semibold text-[#1d1d1f] leading-snug mb-2 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h4>
+                      <span class="inline-flex items-center gap-1.5 text-xs text-[#0071e3] font-semibold">
+                        View Details <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                      </span>
+                    </div>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </section>
+      );
+    })()
+  }
+
+  <!-- ===== 相关文章 ===== -->
+  {
+    (() => {
+      const others = getPosts().filter((p) => p.slug !== post.slug).slice(0, 3);
+      return (
+        <section class="py-16 lg:py-20 bg-[#f5f5f7]" aria-label="Related articles">
+          <div class="container mx-auto max-w-7xl px-4">
+            <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] tracking-tight mb-10">Related <span class="gradient-text">Articles</span></h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {
+                others.map((p) => (
+                  <a href={`/blog/${p.slug}/`} class="group bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
+                    <div class="overflow-hidden aspect-[16/9] bg-[#f5f5f7]">
+                      <img src={`/images/blog/${p.slug}.jpg`} alt={p.title} loading="lazy"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    </div>
+                    <div class="p-5">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#0071e3] bg-[#0071e3]/10 px-2 py-0.5 rounded-full">{p.category}</span>
+                        <span class="text-xs text-[#86868b]">{p.date}</span>
+                      </div>
+                      <h3 class="font-semibold text-[#1d1d1f] text-sm leading-snug group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.title}</h3>
+                    </div>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </section>
+      );
+    })()
+  }
+
+  <!-- 阅读进度条 + 目录高亮 -->
+  <script is:inline>
+    (function () {
+      var bar = document.getElementById('reading-progress');
+      if (bar) {
+        window.addEventListener('scroll', function () {
+          var doc = document.documentElement;
+          var max = doc.scrollHeight - doc.clientHeight;
+          var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+          bar.style.width = pct + '%';
+        }, { passive: true });
+      }
+      // 目录滚动高亮
+      var tocLinks = document.querySelectorAll('.toc-link');
+      if (tocLinks.length) {
+        var sections = [];
+        tocLinks.forEach(function (a) {
+          var el = document.getElementById(a.getAttribute('data-toc-id'));
+          if (el) sections.push({ link: a, el: el });
+        });
+        var onScroll = function () {
+          var pos = window.scrollY + 140;
+          var current = null;
+          sections.forEach(function (s) {
+            if (s.el.offsetTop <= pos) current = s;
+          });
+          sections.forEach(function (s) {
+            s.link.classList.remove('font-semibold', 'text-[#1d1d1f]');
+            s.link.classList.add('text-[#6e6e73]');
+          });
+          if (current) {
+            current.link.classList.add('font-semibold', 'text-[#1d1d1f]');
+            current.link.classList.remove('text-[#6e6e73]');
+          }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+    })();
+  </script>
+</Layout>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" role="img" aria-label="Watch IPTV on Fire Stick">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="scr" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dc2626"/>
+      <stop offset="1" stop-color="#991b1b"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" rx="20" fill="url(#bg)"/>
+  <!-- 电视屏幕 -->
+  <rect x="60" y="50" width="280" height="170" rx="12" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <rect x="70" y="60" width="260" height="150" rx="8" fill="url(#scr)"/>
+  <!-- 播放三角 -->
+  <path d="M175 120 L235 135 L175 150 Z" fill="#ffffff" opacity="0.95"/>
+  <!-- 电视底座 -->
+  <rect x="170" y="225" width="60" height="10" rx="4" fill="#334155"/>
+  <rect x="155" y="220" width="90" height="8" rx="4" fill="#475569"/>
+  <!-- HDMI 棒 -->
+  <rect x="320" y="60" width="45" height="16" rx="4" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+  <text x="342" y="72" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#94a3b8">4K</text>
+  <!-- 品牌文字 -->
+  <text x="200" y="275" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#64748b">IPTVStream</text>
+</svg>

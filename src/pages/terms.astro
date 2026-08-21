@@ -1,0 +1,112 @@
+---
+// 服务条款页 — 按 privacy.md 规则：
+// 页面简洁，作为模板，其他类似页面共用（只有标题和内容不一样）
+// 内容由后台编辑，p/h 标签不带 class，样式统一定义在 css/style.css 的 .policy-content
+import Layout from '../layouts/Layout.astro';
+
+const termsSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Terms of Service — IPTVStream',
+  url: 'https://www.iptv-demo.example.com/terms/',
+  description: 'Read the IPTVStream terms of service that govern your use of our broadcast equipment manufacturing and sales.',
+};
+
+const breadcrumbs = [{ name: 'Terms of Service', url: '/terms/' }];
+---
+
+<Layout
+  title="Terms of Service | IPTVStream"
+  description="Read the IPTVStream terms of service: the agreement that governs your use of our broadcast equipment manufacturing and sales, billing, refunds and acceptable use."
+  schema={termsSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <section class="py-14 lg:py-20 bg-white" aria-label="Terms of service">
+    <div class="container mx-auto max-w-3xl px-4">
+      <!-- 内容由后台编辑，不带 class，样式在 css/style.css -->
+      <div class="policy-content">
+        <h1>Terms of Service</h1>
+        <p><time datetime="2026-01-01">Last updated: January 1, 2026</time></p>
+        <p>
+          Welcome to IPTVStream. These Terms of Service ("Terms") govern your access to and use of our website
+          and broadcast equipment manufacturing and sales. By creating an account or purchasing a purchase order, you agree to be
+          bound by these Terms.
+        </p>
+
+        <h2>1. The Service</h2>
+        <p>
+          IPTVStream provides internet-based television services, including live TV products, video-on-demand
+          content and related features ("the Service"). We may update, modify or discontinue parts of the
+          Service at any time.
+        </p>
+
+        <h2>2. Eligibility</h2>
+        <p>
+          You must be at least 18 years old to purchase a purchase order. By using the Service, you confirm that
+          you meet this requirement and that you will provide accurate and complete information during sign-up.
+        </p>
+
+        <h2>3. Subscriptions and Billing</h2>
+        <ul>
+          <li>Subscription fees are charged in advance for the selected billing period.</li>
+          <li>Your purchase order renews automatically at the end of each period unless you cancel before the renewal date.</li>
+          <li>All prices are listed in US dollars and may include applicable taxes.</li>
+          <li>We reserve the right to change prices, with notice provided before the next billing cycle.</li>
+        </ul>
+
+        <h2>4. Refund Policy</h2>
+        <p>
+          We offer a 7-day money-back guarantee on all new purchase orders. If you are not satisfied with the
+          Service within 7 days of purchase, contact our support team for a full refund. Refunds are processed
+          within 5–10 business days.
+        </p>
+
+        <h2>5. Acceptable Use</h2>
+        <p>You agree not to:</p>
+        <ul>
+          <li>Resell, share or redistribute your purchase order or access credentials.</li>
+          <li>Use the Service for any unlawful purpose or in violation of local laws.</li>
+          <li>Attempt to interfere with, reverse engineer or disrupt the Service.</li>
+          <li>Copy, record or redistribute content without authorization.</li>
+        </ul>
+
+        <h2>6. Device and Connection Limits</h2>
+        <p>
+          Each purchase order plan includes a specified number of simultaneous connections. Sharing your account
+          beyond the allowed number of connections may result in suspension of the Service.
+        </p>
+
+        <h2>7. Termination</h2>
+        <p>
+          We may suspend or terminate your access to the Service if you violate these Terms, fail to pay
+          purchase order fees, or if required by law. You may cancel your purchase order at any time through our
+          support team.
+        </p>
+
+        <h2>8. Disclaimer of Warranties</h2>
+        <p>
+          The Service is provided "as is" and "as available" without warranties of any kind, whether express or
+          implied. We do not guarantee that the Service will be uninterrupted, error-free or secure at all times.
+        </p>
+
+        <h2>9. Limitation of Liability</h2>
+        <p>
+          To the maximum extent permitted by law, IPTVStream shall not be liable for any indirect, incidental,
+          special or consequential damages arising from your use of the Service.
+        </p>
+
+        <h2>10. Changes to These Terms</h2>
+        <p>
+          We may update these Terms from time to time. Continued use of the Service after changes are posted
+          constitutes acceptance of the updated Terms.
+        </p>
+
+        <h2>11. Contact Us</h2>
+        <p>
+          If you have any questions about these Terms, please contact us at
+          <a href="mailto:sales@coaxtoiptv.com">sales@coaxtoiptv.com</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

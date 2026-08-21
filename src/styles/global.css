@@ -1,0 +1,3 @@
+/* src/styles/global.css — Astro 全局样式入口
+   实际样式以 public/css/style.css 为主（规则要求额外 CSS 放那里）
+   这里只做 Astro 构建需要的兜底 */

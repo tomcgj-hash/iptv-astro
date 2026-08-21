@@ -1,0 +1,165 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const contactSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: 'Contact IPTVStream',
+  url: 'https://www.iptv-demo.example.com/contact/',
+  description: 'Contact IPTVStream — 24/7 support by email, WhatsApp or the contact form. We reply within minutes.',
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'IPTVStream',
+    email: 'sales@coaxtoiptv.com',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      availableLanguage: ['English', 'French', 'Spanish', 'Arabic'],
+    },
+  },
+};
+
+const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
+---
+
+<Layout
+  title="Contact IPTVStream — 24/7 Customer Support"
+  description="Contact IPTVStream anytime — 24/7 support by email, WhatsApp or our contact form. We typically reply within minutes. Get help with setup, billing or channel requests."
+  schema={contactSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- ===== 页面标题 ===== -->
+  <section class="bg-white py-20 lg:py-28 text-center border-b border-[#e8e8ed]" aria-label="Contact overview">
+    <div class="container mx-auto max-w-3xl px-4">
+      <h1 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] mb-4">We're Here to Help</h1>
+      <p class="text-[#6e6e73] text-lg">Questions, setup help or channel requests — our team replies within minutes, 24/7.</p>
+    </div>
+  </section>
+
+  <!-- ===== 联系方式 + 表单 ===== -->
+  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Contact methods">
+    <div class="container mx-auto max-w-7xl px-4 grid lg:grid-cols-5 gap-10">
+      <!-- 联系卡片 -->
+      <div class="lg:col-span-2 space-y-5">
+        <article class="bg-white rounded-2xl p-6 border border-[#e8e8ed] flex items-start gap-4">
+          <div class="w-11 h-11 bg-green-50 text-[#00e68a] rounded-xl inline-flex items-center justify-center shrink-0">
+            <i class="fab fa-whatsapp text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-[#1d1d1f]">WhatsApp</h2>
+            <p class="text-sm text-[#86868b] mt-1">Fastest way to reach us — typically replies within minutes.</p>
+            <a href="https://wa.me/8613922702227" class="text-[#0071e3] text-sm font-semibold hover:underline mt-2 inline-block">Chat on WhatsApp <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl p-6 border border-[#e8e8ed] flex items-start gap-4">
+          <div class="w-11 h-11 bg-gradient-to-r from-[#0071e3] to-[#0a84ff]/10 text-[#0071e3] rounded-xl inline-flex items-center justify-center shrink-0">
+            <i class="fas fa-envelope text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-[#1d1d1f]">Email</h2>
+            <p class="text-sm text-[#86868b] mt-1">sales@coaxtoiptv.com</p>
+            <p class="text-sm text-[#86868b]">We reply to all emails within 24 hours.</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl p-6 border border-[#e8e8ed] flex items-start gap-4">
+          <div class="w-11 h-11 bg-gradient-to-r from-[#0071e3] to-[#0a84ff]/10 text-[#0071e3] rounded-xl inline-flex items-center justify-center shrink-0">
+            <i class="fab fa-telegram-plane text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-[#1d1d1f]">Telegram</h2>
+            <p class="text-sm text-[#86868b] mt-1">@iptvstream_support</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl p-6 border border-[#e8e8ed] flex items-start gap-4">
+          <div class="w-11 h-11 bg-white/5 text-[#86868b] rounded-xl inline-flex items-center justify-center shrink-0">
+            <i class="fas fa-clock text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-[#1d1d1f]">Support Hours</h2>
+            <p class="text-sm text-[#86868b] mt-1">24 hours a day, 7 days a week — including holidays.</p>
+          </div>
+        </article>
+      </div>
+
+      <!-- 联系表单 -->
+      <div class="lg:col-span-3">
+        <form id="contact-form" class="bg-white rounded-2xl p-8 border border-[#e8e8ed]" action="https://api.web3forms.com/submit" method="POST">
+          <input type="hidden" name="access_key" id="w3f-key" value="a532024b-8305-428d-a12e-5fcc5958d36a" />
+          <input type="hidden" name="subject" value="New inquiry from IPTVStream website" />
+          <input type="hidden" name="from_name" value="IPTVStream Website" />
+          <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
+          <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">Send Us a Message</h2>
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label for="name" class="block text-sm font-semibold text-[#6e6e73] mb-2">Your Name</label>
+              <input type="text" id="name" name="name" required placeholder="John Smith" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent" />
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-semibold text-[#6e6e73] mb-2">Email Address</label>
+              <input type="email" id="email" name="email" required placeholder="sales@coaxtoiptv.com" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent" />
+            </div>
+          </div>
+          <div class="mt-5">
+            <label for="subject" class="block text-sm font-semibold text-[#6e6e73] mb-2">Subject</label>
+            <select id="subject" name="subject" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent">
+              <option value="general">General question</option>
+              <option value="setup">Setup help</option>
+              <option value="billing">Billing / payment</option>
+              <option value="quote">Equipment quote</option>
+              <option value="support">Technical support</option>
+            </select>
+          </div>
+          <div class="mt-5">
+            <label for="message" class="block text-sm font-semibold text-[#6e6e73] mb-2">Message</label>
+            <textarea id="message" name="message" rows="5" required placeholder="How can we help?" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent"></textarea>
+          </div>
+          <div id="form-status" class="hidden mt-4 text-sm font-medium"></div>
+          <button type="submit" id="submit-btn" class="btn-primary mt-6 w-full justify-center">
+            <i class="fas fa-paper-plane"></i> Send Message
+          </button>
+        </form>
+        <script is:inline>
+          (function () {
+            var form = document.getElementById('contact-form');
+            var status = document.getElementById('form-status');
+            var btn = document.getElementById('submit-btn');
+            if (!form || !status || !btn) return;
+            form.addEventListener('submit', async function (e) {
+              e.preventDefault();
+              // 蜜罐字段检测（垃圾邮件）
+              if (form.querySelector('input[name="botcheck"]').checked) return;
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+              status.classList.remove('hidden');
+              status.className = 'mt-4 text-sm font-medium text-[#86868b]';
+              status.textContent = 'Sending your message...';
+              try {
+                var resp = await fetch('https://api.web3forms.com/submit', {
+                  method: 'POST',
+                  body: new FormData(form),
+                });
+                var data = await resp.json();
+                if (data.success) {
+                  status.className = 'mt-4 text-sm font-medium text-[#248a3d]';
+                  status.textContent = '✓ Message sent! We will reply within 24 hours.';
+                  form.reset();
+                } else {
+                  status.className = 'mt-4 text-sm font-medium text-[#c93400]';
+                  status.textContent = 'Failed to send: ' + (data.message || 'Please try again.');
+                }
+              } catch (err) {
+                status.className = 'mt-4 text-sm font-medium text-[#c93400]';
+                status.textContent = 'Network error. Please try again or email us directly.';
+              }
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            });
+          })();
+        </script>
+      </div>
+    </div>
+  </section>
+</Layout>

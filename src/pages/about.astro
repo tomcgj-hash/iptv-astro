@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'IPTVStream Broadcast',
+  url: 'https://www.iptv-demo.example.com',
+  description: 'Professional digital TV headend equipment manufacturer from China. ISO 9001 certified factory producing encoders, modulators, IP gateways, transmitters and antennas since 2005.',
+  foundingDate: '2005',
+  address: { '@type': 'PostalAddress', addressCountry: 'China', addressLocality: 'Guangzhou' },
+  areaServed: 'Worldwide',
+};
+
+const values = [
+  { icon: 'fas fa-certificate', title: 'ISO 9001 Certified', desc: 'Quality management system certified to ISO 9001 with strict testing at every production stage.' },
+  { icon: 'fas fa-lightbulb', title: 'In-House R&D', desc: 'Products designed and developed by our own engineering team — not white-labeled from other factories.' },
+  { icon: 'fas fa-handshake', title: 'Factory Direct', desc: 'No middlemen. Buy directly from the manufacturer with transparent pricing and full support.' },
+  { icon: 'fas fa-shield-halved', title: 'Lifetime Support', desc: 'Every order includes lifetime technical support and remote diagnostics for your system.' },
+];
+
+const milestones = [
+  { year: '2005', event: 'Founded in Guangzhou, China as a broadcast equipment manufacturer.' },
+  { year: '2009', event: 'Expanded into digital TV headend equipment: encoders, modulators and multiplexers.' },
+  { year: '2015', event: 'ISO 9001 certification achieved; exports reached 30 countries.' },
+  { year: '2020', event: 'Launched all-in-one IPTV gateway servers and hotel IPTV solutions.' },
+  { year: '2026', event: 'Trusted by broadcasters, integrators and ISPs in 50+ countries worldwide.' },
+];
+
+const breadcrumbs = [{ name: 'About', url: '/about/' }];
+---
+
+<Layout
+  title="About Us — Professional Broadcast Equipment Manufacturer | IPTVStream Broadcast"
+  description="IPTVStream Broadcast is an ISO 9001 certified manufacturer of digital TV headend equipment since 2005. Factory-direct encoders, modulators, IPTV gateways and transmitters for 50+ countries."
+  schema={aboutSchema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- ===== Hero ===== -->
+  <section class="relative bg-white py-20 lg:py-28 text-center border-b border-[#e8e8ed] overflow-hidden" aria-label="About overview">
+    <img src="/images/general/about-banner.jpg" alt="" aria-hidden="true" loading="lazy"
+      class="absolute inset-0 w-full h-full object-cover opacity-[0.05]" />
+    <div class="relative container mx-auto max-w-3xl px-4">
+      <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">About Us</p>
+      <h1 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] mb-4">Professional Broadcast <span class="gradient-text">Equipment</span> Manufacturer</h1>
+      <p class="text-[#6e6e73] text-lg">Designing and manufacturing digital TV headend equipment in Guangzhou, China since 2005.</p>
+    </div>
+  </section>
+
+  <!-- ===== 公司介绍 ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Company story">
+    <div class="container mx-auto max-w-6xl px-4">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="text-[#86868b] leading-relaxed space-y-6 text-lg">
+          <p>
+            <strong class="text-[#1d1d1f]">IPTVStream Broadcast</strong> is a professional manufacturer of digital TV headend equipment. From our ISO 9001 certified factory in Guangzhou, we design and produce <strong class="text-[#1d1d1f]">encoders, modulators, IP gateways, multiplexers, transmitters and antennas</strong> used by broadcasters and system integrators worldwide.
+          </p>
+          <p>
+            With <strong class="text-[#1d1d1f]">20+ years of manufacturing experience</strong>, our equipment powers thousands of deployments — from single-site headends to national broadcast networks — in more than <strong class="text-[#1d1d1f]">50 countries</strong>.
+          </p>
+          <p>
+            We believe in <strong class="text-[#1d1d1f]">factory-direct relationships</strong>: you work directly with the people who design and build your equipment. That means better pricing, faster support and equipment built around your actual requirements.
+          </p>
+        </div>
+        <div class="relative">
+          <img src="/images/general/about-banner.jpg" alt="IPTVStream Broadcast factory team" loading="lazy"
+            class="rounded-3xl shadow-xl w-full object-cover aspect-[4/3]" />
+          <div class="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl border border-[#e8e8ed] px-6 py-4 hidden sm:block">
+            <p class="text-2xl font-bold text-[#0071e3]">50+</p>
+            <p class="text-xs text-[#86868b]">Countries served</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 里程碑 ===== -->
+  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Milestones">
+    <div class="container mx-auto max-w-4xl px-4">
+      <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] text-center mb-14">Our <span class="gradient-text">Journey</span></h2>
+      <div class="space-y-0 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+        {
+          milestones.map((m) => (
+            <div class="relative pl-10 pb-10 last:pb-0">
+              <div class="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#0071e3] ring-4 ring-[#0071e3]/20"></div>
+              <p class="font-bold text-[#0071e3] text-sm">{m.year}</p>
+              <p class="text-[#6e6e73] mt-1">{m.event}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 价值观 ===== -->
+  <section class="py-16 lg:py-24 bg-white" aria-label="Our values">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] text-center mb-12">What We Stand For</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          values.map((v) => (
+            <article class="bg-[#f5f5f7] rounded-2xl p-7 border border-[#e8e8ed] card-hover text-center">
+              <div class="w-12 h-12 bg-gradient-to-r from-[#0071e3] to-[#0a84ff]/10 text-[#0071e3] rounded-xl inline-flex items-center justify-center mb-5 mx-auto">
+                <i class={`${v.icon} text-xl`}></i>
+              </div>
+              <h3 class="font-bold text-[#1d1d1f] mb-2">{v.title}</h3>
+              <p class="text-[#86868b] text-sm leading-relaxed">{v.desc}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="py-20 lg:py-24 bg-[#f5f5f7]" aria-label="Contact us">
+    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
+      <h2 class="text-3xl font-bold text-[#1d1d1f] mb-4">Partner with Our <span class="gradient-text">Factory</span></h2>
+      <p class="text-[#6e6e73] text-lg mb-8">Whether you need one unit or a national deployment, our team is ready to help.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/contact/" class="btn-primary text-base px-10 py-4"><i class="fas fa-paper-plane"></i> Contact Us</a>
+        <a href="/products/" class="btn-ghost text-base px-10 py-4"><i class="fas fa-box"></i> Browse Products</a>
+      </div>
+    </div>
+  </section>
+</Layout>
