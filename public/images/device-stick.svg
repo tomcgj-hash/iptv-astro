@@ -22,5 +22,5 @@
   <rect x="320" y="60" width="45" height="16" rx="4" fill="#1e293b" stroke="#334155" stroke-width="2"/>
   <text x="342" y="72" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#94a3b8">4K</text>
   <!-- 品牌文字 -->
-  <text x="200" y="275" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#64748b">IPTVStream</text>
+  <text x="200" y="275" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#64748b">FMUSER</text>
 </svg>

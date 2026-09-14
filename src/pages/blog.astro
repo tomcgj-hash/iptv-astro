@@ -7,10 +7,10 @@ const posts = getPosts();
 const blogSchema = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
-  name: 'IPTVStream Blog',
+  name: 'FMUSER Blog',
   url: 'https://www.iptv-demo.example.com/blog/',
   description: 'Guides and expert advice on IPTV services, setup tutorials, broadcast equipment and industry insights.',
-  publisher: { '@type': 'Organization', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+  publisher: { '@type': 'Organization', name: 'FMUSER', url: 'https://www.iptv-demo.example.com' },
 };
 
 const breadcrumbs = [{ name: 'Blog', url: '/blog/' }];
@@ -31,7 +31,7 @@ const rest = posts.slice(1);
 ---
 
 <Layout
-  title="Blog — IPTV Guides, Setup Tutorials & Broadcast Tips | IPTVStream"
+  title="Blog — IPTV Guides, Setup Tutorials & Broadcast Tips | FMUSER"
   description="Expert guides on choosing IPTV services, setting up IPTV on Fire Stick and Smart TV, troubleshooting buffering, hotel IPTV systems and FM broadcast equipment."
   schema={blogSchema}
   breadcrumbs={breadcrumbs}

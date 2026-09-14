@@ -4,13 +4,13 @@ import Layout from '../layouts/Layout.astro';
 const contactSchema = {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
-  name: 'Contact IPTVStream',
+  name: 'Contact FMUSER',
   url: 'https://www.iptv-demo.example.com/contact/',
-  description: 'Send a requirement to IPTVStream: the model number, or the channel count and input/output formats. We answer with the datasheet, the configuration and a written quotation.',
+  description: 'Send a requirement to FMUSER: the model number, or the channel count and input/output formats. We answer with the datasheet, the configuration and a written quotation.',
   mainEntity: {
     '@type': 'Organization',
-    name: 'IPTVStream',
-    email: 'sales@coaxtoiptv.com',
+    name: 'FMUSER',
+    email: 'sales@fmuser.com',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'sales',
@@ -23,7 +23,7 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
 ---
 
 <Layout
-  title="Contact - Send Your Requirement | IPTVStream"
+  title="Contact - Send Your Requirement | FMUSER"
   description="Send the model number, or the channel count and input/output formats. We answer with the datasheet, the configuration and a written quotation."
   schema={contactSchema}
   breadcrumbs={breadcrumbs}
@@ -58,7 +58,7 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
           </div>
           <div>
             <h2 class="font-bold text-[#1d1d1f]">Email</h2>
-            <p class="text-sm text-[#86868b] mt-1">sales@coaxtoiptv.com</p>
+            <p class="text-sm text-[#86868b] mt-1">sales@fmuser.com</p>
             <a href="/contact/" class="text-[#0071e3] text-sm font-semibold hover:underline mt-2 inline-block">Use the form below <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
           </div>
         </article>
@@ -88,8 +88,8 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
       <div class="lg:col-span-3">
         <form id="contact-form" class="bg-white rounded-2xl p-8 border border-[#e8e8ed]" action="https://api.web3forms.com/submit" method="POST">
           <input type="hidden" name="access_key" id="w3f-key" value="a532024b-8305-428d-a12e-5fcc5958d36a" />
-          <input type="hidden" name="subject" value="New inquiry from IPTVStream website" />
-          <input type="hidden" name="from_name" value="IPTVStream Website" />
+          <input type="hidden" name="subject" value="New inquiry from FMUSER website" />
+          <input type="hidden" name="from_name" value="FMUSER Website" />
           <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
           <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">Send your requirement</h2>
           <div class="grid sm:grid-cols-2 gap-5">

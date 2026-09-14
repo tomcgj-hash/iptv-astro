@@ -32,8 +32,8 @@ const articleSchema = {
   description: post.excerpt,
   datePublished: post.date,
   dateModified: post.date,
-  author: { '@type': 'Organization', name: 'IPTVStream' },
-  publisher: { '@type': 'Organization', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+  author: { '@type': 'Organization', name: 'FMUSER' },
+  publisher: { '@type': 'Organization', name: 'FMUSER', url: 'https://www.iptv-demo.example.com' },
   mainEntityOfPage: `https://www.iptv-demo.example.com/blog/${post.slug}/`,
   articleSection: post.category,
   image: `https://www.iptv-demo.example.com/images/blog/${post.slug}.jpg`,
@@ -167,7 +167,7 @@ const next = idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
 ---
 
 <Layout
-  title={`${post.title} | IPTVStream Blog`}
+  title={`${post.title} | FMUSER Blog`}
   description={post.excerpt}
   schema={articleSchema}
   breadcrumbs={breadcrumbs}
@@ -234,7 +234,7 @@ const next = idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
             <div class="flex items-center gap-3 border-t border-[#e8e8ed] pt-5">
               <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#0071e3] to-[#0a84ff] flex items-center justify-center text-white font-bold text-sm shadow-md">IP</div>
               <div>
-                <p class="text-sm font-semibold text-[#1d1d1f]">IPTVStream Team</p>
+                <p class="text-sm font-semibold text-[#1d1d1f]">FMUSER Team</p>
                 <p class="text-xs text-[#86868b]">Broadcast & IPTV Experts</p>
               </div>
             </div>

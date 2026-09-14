@@ -74,7 +74,7 @@ const schema = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'IPTVStream Broadcast',
+    name: 'FMUSER',
     url: SITE,
     description: `${TOTAL} models of digital TV headend equipment — encoders, encoder-modulators, modulators, IP gateways, IRDs, multiplexers, EPG and IPTV server software, DVB-T and FM transmitters. Every model is published with its datasheet.`,
     address: { '@type': 'PostalAddress', addressCountry: 'China', addressLocality: 'Guangzhou' },
@@ -93,7 +93,7 @@ const breadcrumbs = [{ name: 'About', url: '/about/' }];
 ---
 
 <Layout
-  title="About - The Headend Line We Supply | IPTVStream"
+  title="About - The Headend Line We Supply | FMUSER"
   description={`What this catalogue contains: ${TOTAL} digital TV headend models in ${CATS.length} categories, each with its published datasheet, and how an enquiry runs from requirements to shipping.`}
   schema={schema}
   breadcrumbs={breadcrumbs}
@@ -114,8 +114,9 @@ const breadcrumbs = [{ name: 'About', url: '/about/' }];
             from that document.
           </p>
           <p class="mt-4 max-w-2xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
-            We are an export desk, not a photo booth: the pages show the equipment, the specifications behind it,
-            and the way a project gets specified. Commercial terms are confirmed in writing per order.
+            This is FMUSER's own catalogue. We design and build the FUQ headend line in Guangzhou and publish a
+            datasheet for every model — the same document our own engineers specify from, so what you read on a
+            model page is what the unit is.
           </p>
           <div class="ab-cta">
             <a href="/products/" class="btn-primary text-base px-8 py-3.5">
@@ -200,10 +201,10 @@ const breadcrumbs = [{ name: 'About', url: '/about/' }];
   <!-- ===== confirmed per order ===== -->
   <section class="border-t border-[#e8e8ed] bg-[#f5f5f7] py-12 lg:py-16" aria-label="Confirmed per order">
     <div class="container mx-auto max-w-7xl px-4">
-      <h2 class="ab-h2">Confirmed per order, not claimed on a web page</h2>
+      <h2 class="ab-h2">Quoted with your enquiry</h2>
       <p class="ab-lead">
-        Anything that depends on your market, your quantity or the factory schedule is answered in writing for your
-        enquiry, so you can put it in your procurement file:
+        Terms that depend on your market, your quantity and the production schedule are put in writing with the
+        quotation, so you can drop them straight into your procurement file:
       </p>
       <dl class="ab-terms">
         {CONFIRMED_PER_ORDER.map(([k, v]) => (

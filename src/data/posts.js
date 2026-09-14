@@ -1,4 +1,4 @@
-// 博客文章数据 — IPTVStream Blog
+// 博客文章数据 — FMUSER Blog
 // 每篇含：slug/title/excerpt/date/category/readTime/content（markdown 简化格式）
 export const POSTS = [
   {
