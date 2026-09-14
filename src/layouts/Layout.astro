@@ -92,6 +92,9 @@ const siteSchema = schema || {
         <meta name="pagefind-meta-category" content={Astro.props.category} />
       )
     }
+
+    <!-- pages can inject extra head tags (e.g. noindex or a redirect) -->
+    <slot name="head" />
   </head>
   <body class="flex min-h-screen flex-col text-slate-900 antialiased">
     <!-- Header placeholder (filled by js/main.js from header.html) -->

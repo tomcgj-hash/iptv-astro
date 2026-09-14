@@ -1,0 +1,318 @@
+---
+// ============================================================
+// warranty-returns.astro - warranty, DOA and RMA process (replaces the old
+// consumer "Refund Policy" page; /refund/ is kept as a redirect so old links
+// and bookmarks do not 404)
+// Variable terms (warranty period, who pays return freight) are referenced to
+// the order confirmation rather than invented here.
+// ============================================================
+import Layout from '../layouts/Layout.astro';
+
+const SITE = 'https://www.iptv-demo.example.com';
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Warranty and Returns - FMUSER',
+    url: `${SITE}/warranty-returns/`,
+    description:
+      'How FMUSER handles warranty claims, dead-on-arrival units and repairs: what is covered, what is not, and the RMA steps.',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Warranty and Returns', item: `${SITE}/warranty-returns/` },
+    ],
+  },
+];
+
+const STEPS = [
+  {
+    n: '01',
+    t: 'Send the details',
+    d: 'Order number, model, serial number, a description of the fault, and photographs or a short video of the unit running. The serial number is on the rear or bottom panel label.',
+  },
+  {
+    n: '02',
+    t: 'We diagnose it with you',
+    d: 'Most faults are configuration or signal issues. We go through the settings and the input/output chain first, because that avoids a shipment that was never needed.',
+  },
+  {
+    n: '03',
+    t: 'RMA number and instructions',
+    d: 'If the unit has to come back, we issue an RMA number and the return address, and confirm in writing who arranges and pays the return freight for that case.',
+  },
+  {
+    n: '04',
+    t: 'Repair, replace or parts',
+    d: 'Depending on the fault and the lead time, we repair the unit, replace it, or ship the faulty board or module for local fitting. The agreed remedy is confirmed in writing before anything ships.',
+  },
+];
+
+const breadcrumbs = [{ name: 'Warranty and Returns', url: '/warranty-returns/' }];
+---
+
+<Layout
+  title="Warranty and Returns | FMUSER"
+  description="What the FMUSER equipment warranty covers, what it does not, how dead-on-arrival units and repairs are handled, and the RMA steps to start a claim."
+  schema={schema}
+  breadcrumbs={breadcrumbs}
+>
+  <!-- hero -->
+  <section class="bg-white pt-10 pb-8 lg:pt-14 lg:pb-10" aria-label="Warranty and returns">
+    <div class="container mx-auto max-w-7xl px-4">
+      <p class="wr-eyebrow">After-sales</p>
+      <h1 class="mt-3 text-[34px] lg:text-[52px] font-bold leading-[1.08] tracking-tight text-[#1d1d1f]">
+        Warranty, DOA units<br class="hidden lg:block" /> and returns
+      </h1>
+      <p class="mt-5 max-w-3xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+        Equipment is warranted against manufacturing defects for the period stated in your order confirmation,
+        counted from delivery. This page sets out what that covers, what it does not, and the steps to start a claim
+        — so a fault does not turn into an argument.
+      </p>
+    </div>
+  </section>
+
+  <!-- process -->
+  <section class="border-t border-[#e8e8ed] bg-white py-12 lg:py-16" aria-label="Claim process">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="wr-h2">How a claim runs</h2>
+      <div class="wr-steps">
+        {STEPS.map((s) => (
+          <div class="wr-step">
+            <span class="wr-step-n">{s.n}</span>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+      <p class="wr-note">
+        Never return equipment before you have an RMA number: units that arrive without one cannot be identified
+        against an order and may be refused by the receiving warehouse.
+      </p>
+    </div>
+  </section>
+
+  <!-- covered / not covered -->
+  <section class="border-t border-[#e8e8ed] bg-white py-12 lg:py-16" aria-label="What is covered">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid gap-6 lg:grid-cols-2 lg:gap-10">
+        <div class="wr-card wr-card-yes">
+          <h2 class="wr-card-t">Covered</h2>
+          <ul>
+            <li>Units that fail within the warranty period from a manufacturing defect.</li>
+            <li>Components that fail under normal use: power supplies, tuner or input boards, output stages.</li>
+            <li>Units that arrive dead (DOA) — a case is opened as soon as it is reported.</li>
+            <li>Firmware faults that we can confirm and reproduce.</li>
+          </ul>
+        </div>
+        <div class="wr-card wr-card-no">
+          <h2 class="wr-card-t">Not covered</h2>
+          <ul>
+            <li>Transit damage — that claim belongs to the carrier (see the <a href="/terms/">terms of sale</a>, section 5).</li>
+            <li>Incorrect power supply, wiring or installation; running a unit outside its published specification.</li>
+            <li>Unauthorised repair, modification, or third-party firmware.</li>
+            <li>Damage from lightning, humidity, water, insects or power surges.</li>
+            <li>Consumables, wear parts and accessories such as cables, connectors and batteries.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- spares and paid repairs -->
+  <section class="border-t border-[#e8e8ed] bg-[#f5f5f7] py-12 lg:py-16" aria-label="Spares and paid repairs">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="wr-h2">Spares, out-of-warranty repairs and credits</h2>
+      <div class="wr-terms">
+        <div>
+          <dt>Spare parts</dt>
+          <dd>Boards, power supplies and modules are available as spares for the models we supply, so a unit in the field can be repaired without replacing the whole chassis.</dd>
+        </div>
+        <div>
+          <dt>Paid repairs</dt>
+          <dd>Units outside the warranty period are repaired on quotation: we examine the unit, confirm the fault and the cost in writing before any work is done.</dd>
+        </div>
+        <div>
+          <dt>If a unit cannot be repaired or replaced</dt>
+          <dd>The remedy is agreed with you in writing — a replacement unit, a credit against the invoice, or a refund of the price paid for that unit. Credits and refunds are applied to the original invoice.</dd>
+        </div>
+        <div>
+          <dt>Return freight</dt>
+          <dd>Who arranges and pays the return freight is confirmed in writing with the RMA number for each case, together with the customs description to use on the shipping documents.</dd>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-white py-16 lg:py-20" aria-label="Start a claim">
+    <div class="container mx-auto max-w-4xl px-4 text-center">
+      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight text-[#1d1d1f]">Start a claim</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-lg text-[#6e6e73]">
+        Send the order number, the serial number and a photograph or short video of the fault. Include how the unit
+        is being fed (input source, output standard) — it is often enough for us to spot the cause directly.
+      </p>
+      <a href="/contact/" class="btn-primary mt-8 text-base px-10 py-4">
+        <i class="fas fa-screwdriver-wrench" aria-hidden="true"></i> Open a support case
+      </a>
+    </div>
+  </section>
+
+  <style is:global>
+    .wr-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #0071e3;
+    }
+    .wr-h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #1d1d1f;
+    }
+    @media (min-width: 1024px) {
+      .wr-h2 {
+        font-size: 30px;
+      }
+    }
+    .wr-steps {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.6rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    @media (min-width: 768px) {
+      .wr-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .wr-steps {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    .wr-step {
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      padding: 1.15rem 1.2rem 1.3rem;
+      background: #fff;
+    }
+    .wr-step-n {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #0071e3;
+    }
+    .wr-step h3 {
+      margin-top: 0.5rem;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+    .wr-step p {
+      margin-top: 0.45rem;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #6e6e73;
+    }
+    .wr-note {
+      margin-top: 1.25rem;
+      padding: 0.9rem 1.1rem;
+      border-left: 3px solid #0071e3;
+      background: #f5f5f7;
+      border-radius: 0 12px 12px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #6e6e73;
+      max-width: 52rem;
+    }
+    .wr-card {
+      border: 1px solid #e8e8ed;
+      border-radius: 18px;
+      padding: 1.3rem 1.4rem 1.5rem;
+      background: #fff;
+    }
+    .wr-card-yes {
+      border-top: 3px solid #0071e3;
+    }
+    .wr-card-no {
+      border-top: 3px solid #d2d2d7;
+    }
+    .wr-card-t {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 0.85rem;
+    }
+    .wr-card ul {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .wr-card li {
+      position: relative;
+      padding-left: 1.3rem;
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: #6e6e73;
+    }
+    .wr-card li::before {
+      content: '';
+      position: absolute;
+      left: 0.15rem;
+      top: 0.55rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #0071e3;
+    }
+    .wr-card-no li::before {
+      background: #a1a1a6;
+    }
+    .wr-terms {
+      display: grid;
+      gap: 0;
+      margin-top: 1.5rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .wr-terms > div {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.15rem;
+      padding: 0.9rem 1.1rem;
+    }
+    .wr-terms > div + div {
+      border-top: 1px solid #f0f0f2;
+    }
+    @media (min-width: 640px) {
+      .wr-terms > div {
+        grid-template-columns: 15rem minmax(0, 1fr);
+        gap: 1rem;
+        align-items: baseline;
+      }
+    }
+    .wr-terms dt {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #86868b;
+    }
+    .wr-terms dd {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1d1d1f;
+    }
+  </style>
+</Layout>

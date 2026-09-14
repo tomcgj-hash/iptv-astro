@@ -1,110 +1,156 @@
 ---
-// 服务条款页 — 按 privacy.md 规则：
-// 页面简洁，作为模板，其他类似页面共用（只有标题和内容不一样）
-// 内容由后台编辑，p/h 标签不带 class，样式统一定义在 css/style.css 的 .policy-content
+// ============================================================
+// terms.astro - Terms & Conditions of Sale (B2B equipment sales)
+// Rewritten 2026-09-14: the previous version was a consumer IPTV-service
+// document (subscriptions, auto-renewal, account sharing, 7-day refunds) which
+// has nothing to do with selling headend equipment. Variable commercial terms
+// (payment schedule, Incoterm, warranty period, lead time) are deliberately
+// referenced to the order confirmation instead of being invented here.
+// ============================================================
 import Layout from '../layouts/Layout.astro';
+
+const SITE = 'https://www.iptv-demo.example.com';
 
 const termsSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Terms of Service — FMUSER',
-  url: 'https://www.iptv-demo.example.com/terms/',
-  description: 'Read the FMUSER terms of service that govern your use of our broadcast equipment manufacturing and sales.',
+  name: 'Terms and Conditions of Sale - FMUSER',
+  url: `${SITE}/terms/`,
+  description:
+    'Terms and conditions of sale for FMUSER digital TV headend equipment: quotations, orders, payment, delivery, inspection, warranty, returns and governing law.',
 };
 
-const breadcrumbs = [{ name: 'Terms of Service', url: '/terms/' }];
+const breadcrumbs = [{ name: 'Terms of Sale', url: '/terms/' }];
 ---
 
 <Layout
-  title="Terms of Service | FMUSER"
-  description="Read the FMUSER terms of service: the agreement that governs your use of our broadcast equipment manufacturing and sales, billing, refunds and acceptable use."
+  title="Terms and Conditions of Sale | FMUSER"
+  description="Terms and conditions of sale for FMUSER equipment: quotations, order confirmation, payment, delivery and Incoterms, inspection, warranty, returns and disputes."
   schema={termsSchema}
   breadcrumbs={breadcrumbs}
 >
-  <section class="py-14 lg:py-20 bg-white" aria-label="Terms of service">
+  <section class="py-14 lg:py-20 bg-white" aria-label="Terms and conditions of sale">
     <div class="container mx-auto max-w-3xl px-4">
-      <!-- 内容由后台编辑，不带 class，样式在 css/style.css -->
       <div class="policy-content">
-        <h1>Terms of Service</h1>
-        <p><time datetime="2026-01-01">Last updated: January 1, 2026</time></p>
+        <h1>Terms and Conditions of Sale</h1>
+        <p><time datetime="2026-09-14">Last updated: September 14, 2026</time></p>
         <p>
-          Welcome to FMUSER. These Terms of Service ("Terms") govern your access to and use of our website
-          and broadcast equipment manufacturing and sales. By creating an account or purchasing a purchase order, you agree to be
-          bound by these Terms.
+          These terms apply to quotations for, and the sale and supply of, equipment and software licences by
+          FMUSER ("we", "us", "our"), Guangzhou, China, to a business customer ("you", "buyer"). Where an order
+          confirmation or a signed contract states different terms, that document prevails over this page.
         </p>
 
-        <h2>1. The Service</h2>
+        <h2>1. Quotations</h2>
         <p>
-          FMUSER provides internet-based television services, including live TV products, video-on-demand
-          content and related features ("the Service"). We may update, modify or discontinue parts of the
-          Service at any time.
+          Quotations are prepared for the configuration and quantity described in them and are valid for the period
+          stated on the quotation. Model numbers, options and lead times are quoted against the datasheet current at
+          the time of the quotation; we tell you in writing if a datasheet changes before shipment.
         </p>
 
-        <h2>2. Eligibility</h2>
+        <h2>2. Orders and order confirmation</h2>
         <p>
-          You must be at least 18 years old to purchase a purchase order. By using the Service, you confirm that
-          you meet this requirement and that you will provide accurate and complete information during sign-up.
+          An order becomes binding when we issue a written order confirmation (or proforma invoice) and you accept
+          it. The order confirmation states the models, quantities, unit prices, currency, payment schedule,
+          Incoterms and the delivery window; it is the reference document for the shipment.
         </p>
 
-        <h2>3. Subscriptions and Billing</h2>
-        <ul>
-          <li>Subscription fees are charged in advance for the selected billing period.</li>
-          <li>Your purchase order renews automatically at the end of each period unless you cancel before the renewal date.</li>
-          <li>All prices are listed in US dollars and may include applicable taxes.</li>
-          <li>We reserve the right to change prices, with notice provided before the next billing cycle.</li>
-        </ul>
-
-        <h2>4. Refund Policy</h2>
+        <h2>3. Prices, taxes and payment</h2>
         <p>
-          We offer a 7-day money-back guarantee on all new purchase orders. If you are not satisfied with the
-          Service within 7 days of purchase, contact our support team for a full refund. Refunds are processed
-          within 5–10 business days.
+          Prices are stated in the currency of the quotation and, unless stated otherwise, do not include import
+          duties, taxes or charges levied in the destination country. The payment schedule is the one in the order
+          confirmation. Unless agreed otherwise in writing, bank charges outside China are for the buyer's account.
+          We may suspend production or shipment while an invoice is overdue.
         </p>
 
-        <h2>5. Acceptable Use</h2>
-        <p>You agree not to:</p>
-        <ul>
-          <li>Resell, share or redistribute your purchase order or access credentials.</li>
-          <li>Use the Service for any unlawful purpose or in violation of local laws.</li>
-          <li>Attempt to interfere with, reverse engineer or disrupt the Service.</li>
-          <li>Copy, record or redistribute content without authorization.</li>
-        </ul>
-
-        <h2>6. Device and Connection Limits</h2>
+        <h2>4. Delivery, Incoterms and risk</h2>
         <p>
-          Each purchase order plan includes a specified number of simultaneous connections. Sharing your account
-          beyond the allowed number of connections may result in suspension of the Service.
+          The Incoterms&reg; 2020 rule and the named place or port are stated in the order confirmation. Lead time is
+          counted from receipt of the agreed payment and confirmation of the technical details. Risk in the goods
+          passes as provided by that Incoterm. Where you ask us to arrange carriage, we do so as your agent and the
+          contract of carriage is between you and the carrier.
         </p>
 
-        <h2>7. Termination</h2>
+        <h2>5. Inspection, shortages and transit damage</h2>
         <p>
-          We may suspend or terminate your access to the Service if you violate these Terms, fail to pay
-          purchase order fees, or if required by law. You may cancel your purchase order at any time through our
-          support team.
+          Inspect the shipment as soon as it arrives and before installation. Report any shortage or visible transit
+          damage to us in writing as soon as it is discovered, with photographs of the packaging and the equipment,
+          and with the carrier's damage report where one was raised. Claims for damage that occurred in transit are
+          pursued against the carrier, and we assist with the documentation.
         </p>
 
-        <h2>8. Disclaimer of Warranties</h2>
+        <h2>6. Warranty</h2>
         <p>
-          The Service is provided "as is" and "as available" without warranties of any kind, whether express or
-          implied. We do not guarantee that the Service will be uninterrupted, error-free or secure at all times.
+          Equipment is warranted against manufacturing defects for the period stated in the order confirmation,
+          counted from delivery. The warranty covers repair or replacement of the defective unit or its faulty
+          parts, at our option. It does not cover transit damage, incorrect installation or power supply, misuse,
+          unauthorised repair, modification or firmware, consumables and wear parts, or damage from lightning,
+          humidity, water or other events outside our control. Warranty service requires the order number and the
+          unit serial number.
         </p>
 
-        <h2>9. Limitation of Liability</h2>
+        <h2>7. Returns, DOA and RMA</h2>
         <p>
-          To the maximum extent permitted by law, FMUSER shall not be liable for any indirect, incidental,
-          special or consequential damages arising from your use of the Service.
+          Do not return equipment without a return authorisation. Contact us with the order number, serial number,
+          a description of the fault and photographs or a short video; we reply with an RMA number and the return or
+          replacement instructions. Dead-on-arrival units are handled under the same procedure as warranty claims.
+          See <a href="/warranty-returns/">Warranty and Returns</a> for the step-by-step process.
         </p>
 
-        <h2>10. Changes to These Terms</h2>
+        <h2>8. Custom, OEM and ODM orders</h2>
         <p>
-          We may update these Terms from time to time. Continued use of the Service after changes are posted
-          constitutes acceptance of the updated Terms.
+          For custom branding, modified specifications, software configuration or custom packaging, the approved
+          specification sheet or artwork is the reference for production. Minimum quantities, tooling or
+          certification costs and lead time are stated in the quotation for that build. Approved custom builds
+          cannot be cancelled once production has started.
         </p>
 
-        <h2>11. Contact Us</h2>
+        <h2>9. Title</h2>
         <p>
-          If you have any questions about these Terms, please contact us at
-          <a href="mailto:sales@fmuser.com">sales@fmuser.com</a>.
+          Title to the equipment passes to the buyer on payment in full, or earlier if the applicable law provides
+          that title passes on delivery. Until title passes, the buyer holds the equipment as bailee and identifies
+          it as our property.
+        </p>
+
+        <h2>10. Force majeure</h2>
+        <p>
+          Neither party is liable for delay or failure caused by events outside its reasonable control, including
+          natural events, epidemics, war, civil disruption, strikes, transport or customs interruptions, shortages
+          of components, and acts of government. The affected party notifies the other and the delivery window is
+          extended accordingly.
+        </p>
+
+        <h2>11. Intellectual property</h2>
+        <p>
+          All product designs, firmware, documentation and trademarks remain our property or that of our licensors.
+          Datasheets and manuals may be used to evaluate, specify and operate the equipment you buy. They may not be
+          republished as your own material or attributed to another manufacturer.
+        </p>
+
+        <h2>12. Limitation of liability</h2>
+        <p>
+          Our liability for a claim relating to an order is limited to the value of the equipment supplied under
+          that order. We are not liable for loss of profit, loss of broadcasting time or audience, loss of data, or
+          indirect or consequential loss. Nothing in these terms excludes liability that cannot be excluded by law.
+        </p>
+
+        <h2>13. Governing law and disputes</h2>
+        <p>
+          These terms are governed by the laws of the People's Republic of China. The parties first try to settle
+          any dispute through discussion between the responsible managers; if that does not resolve it, the dispute
+          is submitted to the competent court in Guangzhou, China.
+        </p>
+
+        <h2>14. Changes to these terms</h2>
+        <p>
+          We may update these terms; the version published here at the time of your order, together with the order
+          confirmation, applies to that order. The date at the top of this page shows when it was last revised.
+        </p>
+
+        <h2>15. Contact</h2>
+        <p>
+          Questions about these terms, or about a specific order: <a href="mailto:sales@fmuser.com">sales@fmuser.com</a>.
+          For technical and configuration questions, use the <a href="/contact/">contact form</a> so the model details
+          are attached to the enquiry.
         </p>
       </div>
     </div>

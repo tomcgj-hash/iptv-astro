@@ -1,62 +1,37 @@
 ---
-// 退款政策页 — 按 privacy.md 规则：模板页面，只有标题和内容不一样
-// 内容由后台编辑，p/h 标签不带 class，样式在 css/style.css 的 .policy-content
+// ============================================================
+// refund.astro - legacy URL kept alive.
+// The old "Refund Policy" was a consumer IPTV-service document (7-day money-back
+// guarantee etc.) that does not apply to equipment sales. The content now lives on
+// /warranty-returns/; this page exists so old links, bookmarks and any indexed URL
+// do not hit a 404.
+// ============================================================
 import Layout from '../layouts/Layout.astro';
 
-const refundSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: 'Refund Policy — FMUSER',
-  url: 'https://www.iptv-demo.example.com/refund/',
-  description: 'Read the FMUSER refund policy: 7-day money-back guarantee on all new purchase orders.',
-};
-
-const breadcrumbs = [{ name: 'Refund Policy', url: '/refund/' }];
+const breadcrumbs = [{ name: 'Warranty and Returns', url: '/warranty-returns/' }];
 ---
 
 <Layout
-  title="Refund Policy | FMUSER"
-  description="FMUSER offers a 7-day money-back guarantee on all new purchase orders. Read our full refund policy here."
-  schema={refundSchema}
+  title="Warranty and Returns | FMUSER"
+  description="This page has moved: warranty, DOA and return handling for FMUSER equipment is now documented on the Warranty and Returns page."
   breadcrumbs={breadcrumbs}
 >
-  <section class="py-14 lg:py-20 bg-white" aria-label="Refund policy">
-    <div class="container mx-auto max-w-3xl px-4">
-      <!-- 内容由后台编辑，不带 class，样式在 css/style.css -->
-      <div class="policy-content">
-        <h1>Refund Policy</h1>
-        <p><time datetime="2026-01-01">Last updated: January 1, 2026</time></p>
-
-        <h2>7-Day Money-Back Guarantee</h2>
-        <p>
-          Every new FMUSER purchase order is covered by our 7-day money-back guarantee. If you are not
-          satisfied with the service for any reason within 7 days of your purchase, contact our support team
-          and we will issue a full refund — no questions asked.
-        </p>
-
-        <h2>How to Request a Refund</h2>
-        <p>To request a refund, simply:</p>
-        <ol>
-          <li>Contact our support team by email or WhatsApp.</li>
-          <li>Provide your account email address and order details.</li>
-          <li>Tell us what went wrong — your feedback helps us improve.</li>
-        </ol>
-        <p>Refund requests are processed within 5–10 business days and the amount is returned to your original payment method.</p>
-
-        <h2>Exceptions</h2>
-        <p>The following cases are not eligible for a refund:</p>
-        <ul>
-          <li>Subscriptions purchased more than 7 days ago.</li>
-          <li>Renewal charges after the guarantee period, unless the service was unavailable.</li>
-          <li>Violations of our Terms of Service, including account sharing beyond the allowed connections.</li>
-        </ul>
-
-        <h2>Contact Us</h2>
-        <p>
-          Questions about refunds? Contact us at
-          <a href="mailto:sales@fmuser.com">sales@fmuser.com</a>.
-        </p>
-      </div>
+  <meta slot="head" name="robots" content="noindex, follow" />
+  <meta slot="head" http-equiv="refresh" content="0; url=/warranty-returns/" />
+  <section class="py-16 lg:py-24 bg-white" aria-label="Page moved">
+    <div class="container mx-auto max-w-2xl px-4 text-center">
+      <p class="text-[12.5px] font-semibold tracking-[0.14em] uppercase text-[#0071e3]">Moved</p>
+      <h1 class="mt-3 text-[30px] lg:text-[40px] font-bold tracking-tight text-[#1d1d1f]">
+        Warranty and returns
+      </h1>
+      <p class="mt-4 text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+        The refund policy page that used to live here described a consumer subscription service that is not part of
+        this catalogue. Warranty claims, dead-on-arrival units and returns for FMUSER equipment are covered on the
+        Warranty and Returns page.
+      </p>
+      <a href="/warranty-returns/" class="btn-primary mt-8 text-base px-9 py-3.5">
+        <i class="fas fa-arrow-right" aria-hidden="true"></i> Go to Warranty and Returns
+      </a>
     </div>
   </section>
 </Layout>
