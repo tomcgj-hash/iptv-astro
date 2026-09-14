@@ -86,24 +86,11 @@ $(document).ready(function () {
     initHeader();
   }
 
-  /* ---------- 产品图片画廊切换 ---------- */
-  initGallery();
-
-  /* ---------- 产品图片画廊切换 ---------- */
-  function initGallery() {
-    var $main = $('#gallery-main');
-    if (!$main.length) return;
-    var $thumbs = $('#gallery-thumbs .gallery-thumb');
-    if (!$thumbs.length) return;
-    $thumbs.on('click', function () {
-      var $t = $(this);
-      var src = $t.data('gallery-img');
-      if (!src) return;
-      $main.attr('src', src);
-      $thumbs.removeClass('border-[#0071e3] ring-2 ring-[#0071e3]/20').addClass('border-slate-200');
-      $t.addClass('border-[#0071e3] ring-2 ring-[#0071e3]/20').removeClass('border-slate-200 hover:border-slate-300');
-    });
-  }
+  /* ---------- 产品图片画廊切换 ----------
+     已移除：模板页（products/[slug].astro）自己处理缩略图切换、主图同步与灯箱。
+     旧版这里还有一段 jQuery 处理器，会在模板脚本之后执行并以**原图**覆盖主图
+     （88KB 的 .jpg 顶掉 28KB 的 -med.webp），同时给缩略图加已废弃的边框类。
+     两处处理器并存 = 必踩，画廊逻辑只留模板里那一份。 */
 
   /* ---------- 当前页高亮菜单 ---------- */
   function highlightCurrentNav() {

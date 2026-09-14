@@ -1,408 +1,996 @@
 ---
+// ============================================================
+// products/[slug].astro - product detail template (191 model pages)
+// Structure: hero (gallery + buy box) -> sticky on-this-page rail + sections
+//            (Specifications / Model FAQ / Typical use / Related models) -> quote band
+// Content rules: every sentence is derived from products.js or the datasheet link.
+//   - no per-page duplicated marketing blocks (the old template repeated
+//     "Applications" and "Why buy from us" verbatim on all 191 pages)
+//   - the FAQ is generated only from specs that exist on this product, and the
+//     FAQPage JSON-LD carries the exact same text as the visible answers
+// ============================================================
 import Layout from '../../layouts/Layout.astro';
 import { PRODUCTS, CAT_NAMES } from '../../data/products';
+import {
+  short,
+  thumbOf,
+  medOf,
+  modelOf,
+  familyOf,
+  highlightsOf,
+  faqFor,
+  relatedFor,
+  CATEGORY_USE,
+} from '../../lib/product';
 
-// 生成所有产品静态路径
 export function getStaticPaths() {
-  return PRODUCTS.map((p) => ({
-    params: { slug: p.slug },
-    props: { product: p },
-  }));
+  return PRODUCTS.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
 }
 
 const { product } = Astro.props;
+const SITE = 'https://www.iptv-demo.example.com';
+const catLabel = CAT_NAMES[product.category] || product.category;
+const model = modelOf(product);
 
-const catNames = CAT_NAMES;
+const specEntries = Object.entries(product.specs || {});
+const highlights = highlightsOf(product);
+const qas = faqFor(product);
+const related = relatedFor(PRODUCTS, product, model);
+const gallery = product.gallery && product.gallery.length > 0 ? product.gallery : product.image ? [product.image] : [];
 
+// ---------- typical use: chips only for terms that really occur in this product's data ----------
+const USE_TERMS = [
+  { re: /hotel|hospitality|guest/i, label: 'Hotels & hospitality' },
+  { re: /hospital|patient/i, label: 'Hospitals' },
+  { re: /campus|school|universit|education/i, label: 'Campus & education' },
+  { re: /cable|catv/i, label: 'Cable TV' },
+  { re: /iptv/i, label: 'IPTV platforms' },
+  { re: /live event|contribution/i, label: 'Live events' },
+  { re: /satellite|dvb-s/i, label: 'Satellite turn-around' },
+  { re: /\bfm\b|radio/i, label: 'FM radio' },
+  { re: /dvb-t|dtt|terrestrial/i, label: 'Terrestrial TV' },
+  { re: /stream|ott|hls|rtmp/i, label: 'OTT & streaming' },
+  { re: /cruise|marine|ship/i, label: 'Cruise & marine' },
+  { re: /broadcast|headend|head-end/i, label: 'Broadcast headends' },
+  { re: /monitor|analy|measur|tester/i, label: 'Monitoring & test' },
+  { re: /scrambl|\bcas\b|drm/i, label: 'CAS & scrambling' },
+  { re: /\bepg\b/i, label: 'EPG systems' },
+  { re: /airport|stadium|venue|arena/i, label: 'Venues' },
+];
+const haystack = `${product.name} ${product.description || ''}`;
+const useChips = USE_TERMS.filter((t) => t.re.test(haystack)).map((t) => t.label).slice(0, 5);
+const useText = CATEGORY_USE[product.category] || CATEGORY_USE.other;
+
+// ---------- on-this-page rail ----------
+const toc = [];
+if (specEntries.length) toc.push(['specs', 'Specifications']);
+if (qas.length >= 2) toc.push(['faq', 'Model FAQ']);
+toc.push(['use', 'Typical use']);
+if (related.length) toc.push(['related', 'Related models']);
+toc.push(['quote', 'Get a quote']);
+
+// ---------- structured data ----------
 const productSchema = {
   '@context': 'https://schema.org',
   '@type': 'Product',
   name: product.name,
   description: product.description,
-  image: product.image || undefined,
-  url: `https://www.iptv-demo.example.com/products/${product.slug}/`,
+  image: product.image ? `${SITE}${product.image}` : undefined,
+  url: `${SITE}/products/${product.slug}/`,
+  sku: model,
   brand: { '@type': 'Brand', name: 'FMUSER' },
-  category: catNames[product.category] || product.category,
+  category: catLabel,
+  ...(specEntries.length
+    ? {
+        additionalProperty: specEntries.map(([k, v]) => ({
+          '@type': 'PropertyValue',
+          name: k,
+          value: String(v),
+        })),
+      }
+    : {}),
+  ...(product.source_pdf
+    ? {
+        subjectOf: {
+          '@type': 'DigitalDocument',
+          name: `${model} datasheet`,
+          encodingFormat: 'application/pdf',
+          url: `${SITE}/pdf/${product.slug}.pdf`,
+        },
+      }
+    : {}),
+  ...(related.length
+    ? { isSimilarTo: related.map((p) => ({ '@type': 'Product', name: p.name, url: `${SITE}/products/${p.slug}/` })) }
+    : {}),
 };
+
+const faqSchema =
+  qas.length >= 2
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: qas.map((x) => ({
+          '@type': 'Question',
+          name: x.q,
+          acceptedAnswer: { '@type': 'Answer', text: x.a },
+        })),
+      }
+    : null;
 
 const breadcrumbs = [
   { name: 'Products', url: '/products/' },
-  { name: product.name.slice(0, 30), url: `/products/${product.slug}/` },
+  { name: catLabel, url: `/products/?cat=${product.category}` },
+  { name: model, url: `/products/${product.slug}/` },
 ];
-
-const specEntries = Object.entries(product.specs);
-
-// 图片尺寸 helper：主图 900px WebP，缩略图 400px WebP，灯箱用原图
-const medOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
-const thumbOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp');
-
-// 灯箱图片数组（JSON 字符串，注入到内联脚本）
-const galleryJson = JSON.stringify(
-  product.gallery && product.gallery.length > 0 ? product.gallery : [product.image || '']
-);
-
-// 同分类相关产品（最多 4 个，排除当前）
-const related = PRODUCTS.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
-// 同系列（名称前 3 个字符相同，如 FU4xxx）补充
-const relatedBySeries = related.length < 4
-  ? PRODUCTS.filter((p) => p.slug !== product.slug && p.category !== product.category && p.name.slice(0, 4).toLowerCase() === product.name.slice(0, 4).toLowerCase()).slice(0, 4 - related.length)
-  : [];
-
-// 核心亮点：从 specs 中按关键词评分，提取最重要的 4 个参数
-const KEY_SPEC_RULES = [
-  { re: /^Resolution$/i, score: 100 },
-  { re: /Encoding|Video.*Format/i, score: 90, exclude: /^Audio/ },
-  { re: /^Bit[- ]?rate/i, score: 85 },
-  { re: /^Input/i, score: 80 },
-  { re: /^Output/i, score: 80 },
-  { re: /^Modulation|Constellation/i, score: 75 },
-  { re: /^Channels?$/i, score: 70 },
-  { re: /^Interface/i, score: 60 },
-  { re: /^Power/i, score: 55 },
-  { re: /^Audio:/i, score: 40 },
-  { re: /^Standard$/i, score: 35 },
-];
-function specScore(k) {
-  let best = 0;
-  for (const rule of KEY_SPEC_RULES) {
-    if (rule.exclude && rule.exclude.test(k)) continue;
-    if (rule.re.test(k)) best = Math.max(best, rule.score);
-  }
-  return best;
-}
-const scored = specEntries
-  .filter(([k, v]) => v && v.trim() && specScore(k) > 0)
-  .sort((a, b) => specScore(b[0]) - specScore(a[0]));
-const highlights = scored.slice(0, 4).map(([k, v]) => {
-  let val = v.split(',')[0].split(';')[0].trim();
-  if (val.length > 30) val = val.slice(0, 29) + '…';
-  const isAudio = /^Audio:/i.test(k);
-  return { key: isAudio ? 'Audio ' + k.replace(/^Audio:\s*/i, '') : k, value: val };
-});
 ---
 
 <Layout
   title={`${product.name} | IPTVStream`}
-  description={product.description}
-  schema={productSchema}
+  description={short(product.description, 155)}
+  schema={faqSchema ? [productSchema, faqSchema] : productSchema}
   breadcrumbs={breadcrumbs}
   image={product.image}
-  category={catNames[product.category] || product.category}
+  category={catLabel}
 >
-  <!-- ===== 产品头部（Apple 风：白底、大留白、超大标题） ===== -->
-  <section class="py-16 lg:py-24 bg-white" aria-label="Product overview">
+  <!-- ===== hero: gallery + buy box ===== -->
+  <section class="bg-white pt-8 pb-10 lg:pt-12 lg:pb-14" aria-label="Product overview">
     <div class="container mx-auto max-w-7xl px-4">
-      <div class="grid lg:grid-cols-2 gap-14 lg:gap-20 items-start">
-        <!-- 产品图（画廊） -->
-        <div>
+      <div class="grid gap-10 lg:grid-cols-2 lg:gap-14 items-start">
+        <!-- gallery -->
+        <div class="lg:sticky lg:top-[104px]">
           <div class="relative">
-            <div class="bg-[#f5f5f7] rounded-3xl aspect-square flex items-center justify-center relative overflow-hidden cursor-zoom-in group" id="gallery-stage" role="button" tabindex="0" aria-label="Click to enlarge image">
-              <img src={medOf(product.image)} alt={product.name} id="gallery-main" loading="eager"
-                class="h-full w-full object-contain p-8 transition-transform duration-300 group-hover:scale-[1.03]" />
-              {
-                product.gallery && product.gallery.length > 1 && (
-                  <span class="absolute bottom-4 right-4 inline-block bg-white/90 backdrop-blur text-[#86868b] text-xs font-medium px-3 py-1.5 rounded-full z-10">
-                    <i class="fas fa-images mr-1.5"></i>{product.gallery.length} photos
-                  </span>
-                )
-              }
+            <div id="gallery-stage" role="button" tabindex="0" aria-label="Click to enlarge image"
+              class="pd-stage cursor-zoom-in">
+              {product.image ? (
+                <img src={medOf(product.image)} alt={product.name} id="gallery-main" loading="eager" decoding="async" width="900" height="900" />
+              ) : (
+                <i class="fas fa-tower-broadcast" aria-hidden="true"></i>
+              )}
+              {gallery.length > 1 && (
+                <span class="pd-photocount"><i class="fas fa-images" aria-hidden="true"></i>{gallery.length} photos</span>
+              )}
             </div>
-            {
-              product.gallery && product.gallery.length > 1 && (
-                <>
-                  <!-- 主图左右切换按钮 -->
-                  <button type="button" id="stage-prev" aria-label="Previous image"
-                    class="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-lg border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all">
-                    <i class="fas fa-chevron-left text-base"></i>
-                  </button>
-                  <button type="button" id="stage-next" aria-label="Next image"
-                    class="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-lg border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all">
-                    <i class="fas fa-chevron-right text-base"></i>
-                  </button>
-                </>
-              )
-            }
+            {gallery.length > 1 && (
+              <>
+                <button type="button" id="stage-prev" aria-label="Previous image" class="pd-nav pd-nav-prev">
+                  <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" id="stage-next" aria-label="Next image" class="pd-nav pd-nav-next">
+                  <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              </>
+            )}
           </div>
-          {
-            product.gallery && product.gallery.length > 1 && (
-              <div class="flex gap-3 mt-6" id="gallery-thumbs">
-                {
-                  product.gallery.map((img, idx) => (
-                    <button type="button" data-gallery-img={img}
-                      class={`gallery-thumb w-20 h-20 rounded-2xl overflow-hidden bg-[#f5f5f7] flex items-center justify-center cursor-pointer transition-all border-2 ${idx === 0 ? 'border-[#0071e3]' : 'border-transparent hover:border-[#d2d2d7]'}`}
-                      aria-label={`View image ${idx + 1}`}>
-                      <img src={thumbOf(img)} alt={`${product.name} photo ${idx + 1}`} loading="lazy"
-                        class="w-full h-full object-contain p-1.5" />
-                    </button>
-                  ))
-                }
-              </div>
-            )
-          }
+          {gallery.length > 1 && (
+            <div class="pd-thumbs" id="gallery-thumbs">
+              {gallery.map((img, idx) => (
+                <button type="button" data-gallery-img={img}
+                  class={`gallery-thumb pd-thumb ${idx === 0 ? 'on' : ''}`}
+                  aria-label={`View image ${idx + 1}`}>
+                  <img src={thumbOf(img)} alt={`${product.name} photo ${idx + 1}`} loading="lazy" decoding="async" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <!-- 产品信息 -->
-        <div class="lg:pt-4">
-          <p class="text-[#86868b] text-base lg:text-lg font-medium tracking-wide mb-3">{catNames[product.category] || product.category}</p>
-          <h1 class="text-4xl lg:text-[3rem] font-bold text-[#1d1d1f] tracking-tight leading-[1.08] mb-6">{product.name}</h1>
-          <p class="text-[#6e6e73] text-lg lg:text-xl leading-relaxed mb-8">{product.description}</p>
-          {
-            highlights.length > 0 && (
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
-                {
-                  highlights.map((h) => (
-                    <div class="bg-[#f5f5f7] rounded-2xl px-4 py-3.5 border border-[#e8e8ed]">
-                      <p class="text-xs font-medium text-[#86868b] mb-1">{h.key}</p>
-                      <p class="text-sm font-semibold text-[#1d1d1f] leading-snug line-clamp-2">{h.value}</p>
-                    </div>
-                  ))
-                }
-              </div>
-            )
-          }
-          <div class="flex flex-col sm:flex-row gap-4 mb-10">
-            <a href="/contact/" class="inline-flex items-center justify-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-lg font-medium px-9 py-4 rounded-full transition-colors">
-              <i class="fas fa-paper-plane text-base"></i> Request a Quote
-            </a>
-            <a href={`/pdf/${product.slug}.pdf`} target="_blank" rel="noopener"
-              class="inline-flex items-center justify-center gap-2 bg-[#e8e8ed] hover:bg-[#dcdce1] text-[#1d1d1f] text-lg font-medium px-9 py-4 rounded-full transition-colors">
-              <i class="fas fa-file-pdf text-base text-[#ff375f]"></i> Download Datasheet
-            </a>
-            <a href="/products/" class="inline-flex items-center justify-center gap-2 border border-[#d2d2d7] text-[#1d1d1f] text-lg font-medium px-9 py-4 rounded-full hover:bg-[#f5f5f7] transition-colors">
-              <i class="fas fa-arrow-left text-base"></i> All Products
-            </a>
-          </div>
-          <!-- Quick Facts（浅灰卡片） -->
-          <div class="bg-[#f5f5f7] rounded-3xl p-8">
-            <h2 class="text-[#1d1d1f] text-xl font-semibold mb-6">Key Specifications</h2>
-            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-              {
-                specEntries.slice(0, 6).map(([k, v]) => (
-                  <div class="border-b border-[#d2d2d7] pb-3">
-                    <dt class="text-[#86868b] text-sm mb-1">{k}</dt>
-                    <dd class="text-[#1d1d1f] text-base font-medium line-clamp-1">{v}</dd>
-                  </div>
-                ))
-              }
+        <!-- buy box -->
+        <div>
+          <p class="pd-eyebrow"><a href={`/products/?cat=${product.category}`}>{catLabel}</a></p>
+          <h1 class="mt-3 text-[30px] lg:text-[44px] font-bold leading-[1.08] tracking-tight text-[#1d1d1f]">{product.name}</h1>
+
+          <ul class="pd-meta">
+            <li><span>Model</span><b>{model}</b></li>
+            <li><span>Category</span><b>{catLabel}</b></li>
+            {specEntries.length > 0 && <li><span>Specifications</span><b>{specEntries.length} listed</b></li>}
+            {product.source_pdf && <li><span>Datasheet</span><b>PDF</b></li>}
+          </ul>
+
+          <p class="mt-6 text-[17px] lg:text-[19px] leading-relaxed text-[#6e6e73]">{product.description}</p>
+
+          {highlights.length > 0 ? (
+            <dl class="pd-highlights">
+              {highlights.map((h) => (
+                <div>
+                  <dt>{h.key}</dt>
+                  <dd>{h.value}</dd>
+                </div>
+              ))}
             </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+          ) : (
+            <p class="pd-nospec">
+              <i class="fas fa-circle-info" aria-hidden="true"></i>
+              Detailed specifications for the {model} are in the datasheet PDF — tell us what you need and we will confirm it.
+            </p>
+          )}
 
-  <!-- ===== 完整规格表（极简表格） ===== -->
-  {
-    specEntries.length > 0 && (
-      <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Full specifications">
-        <div class="container mx-auto max-w-5xl px-4">
-          <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-12 text-center">Technical Specifications</h2>
-          <div class="bg-white rounded-3xl px-6 sm:px-10 py-6 shadow-sm">
-            <div class="overflow-x-auto -mx-6 sm:mx-0">
-              <table class="w-full min-w-[560px] sm:min-w-0">
-                <tbody class="divide-y divide-[#f0f0f2]">
-                  {
-                    specEntries.map(([k, v]) => (
-                      <tr class="hover:bg-[#fafafc] transition-colors">
-                        <th scope="row" class="py-5 pr-6 text-[#86868b] text-base font-medium w-2/5 align-top">{k}</th>
-                        <td class="py-5 text-[#1d1d1f] text-base lg:text-lg">{v}</td>
-                      </tr>
-                    ))
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  <!-- ===== 应用场景 ===== -->
-  <section class="py-16 lg:py-24 bg-white" aria-label="Applications">
-    <div class="container mx-auto max-w-6xl px-4">
-      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4 text-center">Applications</h2>
-      <p class="text-[#6e6e73] text-lg text-center mb-14">Where this equipment is used</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {
-          [
-            { icon: 'fas fa-hotel', title: 'Hotels & Resorts', desc: 'In-room IPTV, VOD and guest entertainment systems.' },
-            { icon: 'fas fa-building', title: 'Hospital & Clinics', desc: 'Patient TV, digital signage and staff communications.' },
-            { icon: 'fas fa-graduation-cap', title: 'Campus & Schools', desc: 'Campus-wide digital TV distribution to dorms and classrooms.' },
-            { icon: 'fas fa-radio', title: 'Broadcast Stations', desc: 'FM/TV transmission, STL links and headend processing.' },
-          ].map((a) => (
-            <div class="bg-[#f5f5f7] rounded-3xl p-8 text-center hover:bg-[#ececf0] transition-colors">
-              <div class="w-16 h-16 mx-auto bg-white rounded-2xl text-[#0071e3] inline-flex items-center justify-center mb-5 shadow-sm">
-                <i class={`${a.icon} text-2xl`}></i>
-              </div>
-              <h3 class="font-semibold text-[#1d1d1f] text-lg mb-2.5">{a.title}</h3>
-              <p class="text-[#6e6e73] text-base leading-relaxed">{a.desc}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 信任要点 ===== -->
-  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Why buy from us">
-    <div class="container mx-auto max-w-6xl px-4">
-      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4 text-center">Why Buy From Us</h2>
-      <p class="text-[#6e6e73] text-lg text-center mb-14">Manufactured in our own certified facility</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {
-          [
-            { icon: 'fas fa-certificate', title: 'ISO 9001 Factory', desc: 'Manufactured and tested in our certified facility.' },
-            { icon: 'fas fa-truck-fast', title: 'Global Shipping', desc: 'Air or sea freight worldwide with full tracking.' },
-            { icon: 'fas fa-headset', title: '24/7 Support', desc: 'Direct access to our engineers — no middlemen.' },
-            { icon: 'fas fa-shield-halved', title: '12-Month Warranty', desc: 'Hassle-free replacement and repair coverage.' },
-          ].map((t) => (
-            <div class="bg-white rounded-3xl p-8 text-center hover:shadow-lg transition-shadow">
-              <div class="w-16 h-16 mx-auto bg-[#f5f5f7] rounded-2xl text-[#0071e3] inline-flex items-center justify-center mb-5">
-                <i class={`${t.icon} text-2xl`}></i>
-              </div>
-              <h3 class="font-semibold text-[#1d1d1f] text-lg mb-2.5">{t.title}</h3>
-              <p class="text-[#6e6e73] text-base leading-relaxed">{t.desc}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 相关产品 ===== -->
-  {
-    related.length + relatedBySeries.length > 0 && (
-      <section class="py-16 lg:py-24 bg-white" aria-label="Related products">
-        <div class="container mx-auto max-w-7xl px-4">
-          <div class="flex items-end justify-between mb-12">
-            <div>
-              <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight">Related Products</h2>
-              <p class="text-[#6e6e73] mt-2">More options in this range</p>
-            </div>
-            <a href="/products/" class="hidden sm:inline-flex items-center gap-2 text-[#0071e3] font-medium text-sm hover:underline">
-              All Products <i class="fas fa-arrow-right text-xs"></i>
+          <div class="pd-actions">
+            <a href="#quote" class="pd-btn pd-btn-primary">
+              <i class="fas fa-paper-plane" aria-hidden="true"></i> Request a quote
             </a>
+            {product.source_pdf && (
+              <a href={`/pdf/${product.slug}.pdf`} target="_blank" rel="noopener" class="pd-btn pd-btn-soft">
+                <i class="fas fa-file-pdf" aria-hidden="true"></i> Download datasheet
+              </a>
+            )}
           </div>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {
-              [...related, ...relatedBySeries].map((p) => (
-                <a href={`/products/${p.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
-                  <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
-                    {
-                      p.image ? (
-                        <img src={thumbOf(p.image)} alt={p.name} loading="lazy"
-                          class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
-                      ) : (
-                        <i class="fas fa-tower-broadcast text-4xl text-[#a1a1a6]"></i>
-                      )
-                    }
-                  </div>
-                  <div class="p-5">
-                    <span class="text-[11px] font-medium text-[#86868b] uppercase tracking-wide">{catNames[p.category] || p.category}</span>
-                    <h3 class="font-semibold text-[#1d1d1f] text-sm leading-snug mt-1.5 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h3>
-                  </div>
-                </a>
-              ))
-            }
-          </div>
-        </div>
-      </section>
-    )
-  }
 
-  <!-- ===== 相关 CTA ===== -->
-  <section class="py-20 lg:py-28 bg-[#f5f5f7]" aria-label="Next steps">
-    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
-      <h2 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] tracking-tight mb-5">Interested in this product?</h2>
-      <p class="text-[#6e6e73] text-lg mb-10">Contact us for pricing, availability and integration support.</p>
-      <a href="/contact/" class="inline-flex items-center gap-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-base font-medium px-10 py-4 rounded-full transition-colors">
-        <i class="fas fa-comments"></i> Talk to Our Team
-      </a>
+          <p class="pd-hint">
+            Send the channel count, input format and output standard — we reply with a model confirmation and
+            factory-direct pricing.
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ===== 图片灯箱（放大 + 左右切换） ===== -->
+  <!-- ===== mobile on-this-page row ===== -->
+  <nav class="pd-tocbar lg:hidden" aria-label="On this page">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="pd-tocbar-row">
+        {toc.map(([id, label]) => (
+          <a href={`#${id}`}>{label}</a>
+        ))}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== body: sticky rail + sections ===== -->
+  <div class="bg-white">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-14">
+        <aside class="hidden lg:block">
+          <nav class="pd-toc" aria-label="On this page" data-toc>
+            <p class="pd-toc-lbl">On this page</p>
+            {toc.map(([id, label]) => (
+              <a href={`#${id}`} data-toc-link={`#${id}`}>{label}</a>
+            ))}
+          </nav>
+        </aside>
+
+        <div class="min-w-0">
+          <!-- specifications -->
+          {specEntries.length > 0 && (
+            <section id="specs" class="pd-section scroll-mt-32" aria-label="Technical specifications">
+              <h2 class="pd-h2">Technical specifications</h2>
+              <p class="pd-lead">
+                As published in the {model} datasheet. Every value below is taken from the manufacturer document —
+                ask us if you need a parameter that is not listed.
+              </p>
+              <div class="pd-table-wrap">
+                <table class="pd-table">
+                  <tbody>
+                    {specEntries.map(([k, v]) => (
+                      <tr>
+                        <th scope="row">{k}</th>
+                        <td>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {product.source_pdf && (
+                <div class="pd-dl">
+                  <div>
+                    <p class="pd-dl-title">{model} datasheet</p>
+                    <p class="pd-dl-sub">Full manufacturer PDF — interfaces, formats, dimensions and power.</p>
+                  </div>
+                  <a href={`/pdf/${product.slug}.pdf`} target="_blank" rel="noopener" class="pd-btn pd-btn-soft">
+                    <i class="fas fa-download" aria-hidden="true"></i> Open PDF
+                  </a>
+                </div>
+              )}
+            </section>
+          )}
+
+          <!-- model FAQ (generated from real specs; JSON-LD mirrors this text exactly) -->
+          {qas.length >= 2 && (
+            <section id="faq" class="pd-section scroll-mt-32" aria-label="Model FAQ">
+              <h2 class="pd-h2">{model} — quick answers</h2>
+              <div class="pd-faq">
+                {qas.map((x) => (
+                  <details>
+                    <summary>{x.q}</summary>
+                    <p>{x.a}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <!-- typical use -->
+          <section id="use" class="pd-section scroll-mt-32" aria-label="Typical use">
+            <h2 class="pd-h2">Typical use</h2>
+            <p class="pd-lead">{useText}</p>
+            {useChips.length > 0 && (
+              <ul class="pd-chips">
+                {useChips.map((c) => (
+                  <li>{c}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <!-- related -->
+          {related.length > 0 && (
+            <section id="related" class="pd-section scroll-mt-32" aria-label="Related models">
+              <div class="flex items-end justify-between gap-4">
+                <h2 class="pd-h2">More from this range</h2>
+                <a href={`/products/?cat=${product.category}`} class="pd-seeall">
+                  All {catLabel} models <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+              </div>
+              <div class="pd-related">
+                {related.map((p) => (
+                  <a href={`/products/${p.slug}/`} class="pd-rel-card">
+                    <div class="pd-rel-thumb">
+                      {p.image ? (
+                        <img src={thumbOf(p.image)} alt={p.name} loading="lazy" decoding="async" />
+                      ) : (
+                        <i class="fas fa-tower-broadcast" aria-hidden="true"></i>
+                      )}
+                    </div>
+                    <div class="pd-rel-body">
+                      <span class="pd-rel-cat">{CAT_NAMES[p.category] || p.category}</span>
+                      <h3>{p.name}</h3>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <!-- quote -->
+          <section id="quote" class="pd-quote scroll-mt-32" aria-label="Request a quote">
+            <h2 class="pd-h2">Get a quote for the {model}</h2>
+            <p class="pd-lead">
+              Tell us the quantity, the input sources and the output standard you distribute. We confirm the
+              configuration against the datasheet and come back with pricing, lead time and shipping options.
+            </p>
+            <div class="pd-actions">
+              <a href="/contact/" class="pd-btn pd-btn-primary">
+                <i class="fas fa-comments" aria-hidden="true"></i> Talk to an engineer
+              </a>
+              <a href="/products/" class="pd-btn pd-btn-line">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to the catalogue
+              </a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== lightbox ===== -->
   <div id="lightbox" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-label="Image viewer">
     <div id="lightbox-bg" class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
     <button type="button" id="lb-close" class="absolute top-5 right-5 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors" aria-label="Close">
-      <i class="fas fa-xmark"></i>
+      <i class="fas fa-xmark" aria-hidden="true"></i>
     </button>
     <button type="button" id="lb-prev" class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg transition-colors" aria-label="Previous image">
-      <i class="fas fa-chevron-left"></i>
+      <i class="fas fa-chevron-left" aria-hidden="true"></i>
     </button>
     <button type="button" id="lb-next" class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg transition-colors" aria-label="Next image">
-      <i class="fas fa-chevron-right"></i>
+      <i class="fas fa-chevron-right" aria-hidden="true"></i>
     </button>
     <div class="absolute inset-0 flex items-center justify-center p-6 sm:p-16">
-      <img id="lb-img" src="" alt="" class="max-w-full max-h-full object-contain select-none"
-        style="box-shadow:0 0 60px rgba(0,0,0,.6)" />
+      <img id="lb-img" alt="" class="max-w-full max-h-full object-contain select-none" style="box-shadow:0 0 60px rgba(0,0,0,.6)" />
     </div>
     <div id="lb-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-white/10 px-4 py-1.5 rounded-full"></div>
   </div>
 
-  <script is:inline define:vars={{ GALLERY: product.gallery && product.gallery.length > 0 ? product.gallery : [product.image || ''] }}>
+  <style is:global>
+    /* ---- hero ---- */
+    .pd-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+    }
+    .pd-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 2rem;
+      transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .pd-stage:hover img {
+      transform: scale(1.03);
+    }
+    .pd-stage i {
+      font-size: 40px;
+      color: #a1a1a6;
+    }
+    .pd-photocount {
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      color: #86868b;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      z-index: 10;
+    }
+    .pd-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #d2d2d7;
+      color: #1d1d1f;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      z-index: 20;
+      transition: background 0.2s;
+    }
+    .pd-nav:hover {
+      background: #f5f5f7;
+    }
+    .pd-nav-prev {
+      left: -14px;
+    }
+    .pd-nav-next {
+      right: -14px;
+    }
+    .pd-thumbs {
+      display: flex;
+      gap: 0.65rem;
+      margin-top: 1.1rem;
+      overflow-x: auto;
+      padding-bottom: 0.2rem;
+      scrollbar-width: none;
+    }
+    .pd-thumbs::-webkit-scrollbar {
+      display: none;
+    }
+    .pd-thumb {
+      flex: 0 0 auto;
+      width: 74px;
+      height: 74px;
+      border-radius: 14px;
+      background: #f5f5f7;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .pd-thumb.on {
+      border-color: #0071e3;
+    }
+    .pd-thumb:not(.on):hover {
+      border-color: #d2d2d7;
+    }
+    .pd-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    .pd-eyebrow {
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #0071e3;
+    }
+    .pd-eyebrow a:hover {
+      text-decoration: underline;
+    }
+    .pd-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.6rem;
+      margin-top: 1.25rem;
+      padding: 0.85rem 0;
+      border-top: 1px solid #e8e8ed;
+      border-bottom: 1px solid #e8e8ed;
+    }
+    .pd-meta li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      font-size: 13px;
+    }
+    .pd-meta span {
+      color: #86868b;
+    }
+    .pd-meta b {
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+    .pd-highlights {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-top: 1.35rem;
+    }
+    .pd-highlights > div {
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 14px;
+      padding: 0.75rem 0.9rem;
+    }
+    .pd-highlights dt {
+      font-size: 11.5px;
+      color: #86868b;
+      margin-bottom: 0.2rem;
+    }
+    .pd-highlights dd {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #1d1d1f;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pd-nospec {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+      margin-top: 1.35rem;
+      padding: 0.9rem 1rem;
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 14px;
+      font-size: 14px;
+      color: #6e6e73;
+    }
+    .pd-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.6rem;
+    }
+    .pd-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 15.5px;
+      font-weight: 500;
+      padding: 0.85rem 1.6rem;
+      border-radius: 999px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .pd-btn-primary {
+      background: #0071e3;
+      color: #fff;
+    }
+    .pd-btn-primary:hover {
+      background: #0077ed;
+    }
+    .pd-btn-soft {
+      background: #e8e8ed;
+      color: #1d1d1f;
+    }
+    .pd-btn-soft:hover {
+      background: #dcdce1;
+    }
+    .pd-btn-line {
+      border: 1px solid #d2d2d7;
+      color: #1d1d1f;
+    }
+    .pd-btn-line:hover {
+      background: #f5f5f7;
+    }
+    .pd-hint {
+      margin-top: 1.1rem;
+      font-size: 13.5px;
+      color: #86868b;
+      line-height: 1.6;
+      max-width: 34rem;
+    }
+
+    /* ---- on-this-page rail ---- */
+    .pd-toc {
+      position: sticky;
+      top: 104px;
+      padding: 0.25rem 0;
+    }
+    .pd-toc-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #86868b;
+      margin-bottom: 0.6rem;
+    }
+    .pd-toc a {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      font-size: 13.5px;
+      color: #6e6e73;
+      border-radius: 8px;
+      border-left: 2px solid transparent;
+      margin-bottom: 2px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .pd-toc a:hover {
+      background: #f5f5f7;
+      color: #1d1d1f;
+    }
+    .pd-toc a.active {
+      background: #f5f5f7;
+      color: #0071e3;
+      font-weight: 600;
+      border-left-color: #0071e3;
+    }
+    .pd-tocbar {
+      position: sticky;
+      top: 72px;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.92);
+      -webkit-backdrop-filter: saturate(180%) blur(18px);
+      backdrop-filter: saturate(180%) blur(18px);
+      border-top: 1px solid #e8e8ed;
+      border-bottom: 1px solid #e8e8ed;
+    }
+    .pd-tocbar-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.6rem 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .pd-tocbar-row::-webkit-scrollbar {
+      display: none;
+    }
+    .pd-tocbar-row a {
+      flex: 0 0 auto;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #6e6e73;
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 999px;
+      padding: 0.4rem 0.8rem;
+    }
+
+    /* ---- sections ---- */
+    .pd-section {
+      padding: 3rem 0;
+      border-bottom: 1px solid #e8e8ed;
+    }
+    .pd-h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #1d1d1f;
+    }
+    @media (min-width: 1024px) {
+      .pd-h2 {
+        font-size: 32px;
+      }
+    }
+    .pd-lead {
+      margin-top: 0.85rem;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #6e6e73;
+      max-width: 46rem;
+    }
+    .pd-table-wrap {
+      margin-top: 1.5rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .pd-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .pd-table tr + tr {
+      border-top: 1px solid #f0f0f2;
+    }
+    .pd-table tr:hover {
+      background: #fafafc;
+    }
+    .pd-table th {
+      width: 38%;
+      text-align: left;
+      vertical-align: top;
+      padding: 0.9rem 1.1rem;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #86868b;
+      background: #fbfbfd;
+    }
+    .pd-table td {
+      padding: 0.9rem 1.1rem;
+      font-size: 14.5px;
+      color: #1d1d1f;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .pd-dl {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+      padding: 1.1rem 1.25rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      background: #f5f5f7;
+    }
+    .pd-dl-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+    .pd-dl-sub {
+      font-size: 13px;
+      color: #86868b;
+      margin-top: 0.15rem;
+    }
+
+    /* ---- FAQ ---- */
+    .pd-faq {
+      margin-top: 1.5rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .pd-faq details + details {
+      border-top: 1px solid #f0f0f2;
+    }
+    .pd-faq summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 1rem 1.25rem;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .pd-faq summary::-webkit-details-marker {
+      display: none;
+    }
+    .pd-faq summary::after {
+      content: '+';
+      font-weight: 400;
+      color: #0071e3;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .pd-faq details[open] summary::after {
+      content: '\2013';
+    }
+    .pd-faq summary:hover {
+      background: #fafafc;
+    }
+    .pd-faq p {
+      padding: 0 1.25rem 1.1rem;
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #6e6e73;
+    }
+
+    /* ---- chips ---- */
+    .pd-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.15rem;
+    }
+    .pd-chips li {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #6e6e73;
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 999px;
+      padding: 0.4rem 0.85rem;
+    }
+
+    /* ---- related ---- */
+    .pd-seeall {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #0071e3;
+      white-space: nowrap;
+    }
+    .pd-seeall:hover {
+      text-decoration: underline;
+    }
+    .pd-related {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 768px) {
+      .pd-related {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    .pd-rel-card {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.25s, transform 0.25s;
+    }
+    .pd-rel-card:hover {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
+      transform: translateY(-2px);
+    }
+    .pd-rel-thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 4 / 3;
+      background: #f5f5f7;
+      padding: 0.85rem;
+    }
+    .pd-rel-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .pd-rel-thumb i {
+      font-size: 22px;
+      color: #a1a1a6;
+    }
+    .pd-rel-body {
+      padding: 0.85rem 0.95rem 1rem;
+    }
+    .pd-rel-cat {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #86868b;
+    }
+    .pd-rel-body h3 {
+      margin-top: 0.3rem;
+      font-size: 13.5px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #1d1d1f;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pd-rel-card:hover h3 {
+      color: #0071e3;
+    }
+
+    /* ---- quote band ---- */
+    .pd-quote {
+      margin: 2.5rem 0 3rem;
+      padding: 2.25rem 1.75rem;
+      background: #f5f5f7;
+      border-radius: 22px;
+    }
+    @media (min-width: 1024px) {
+      .pd-quote {
+        padding: 2.75rem 2.5rem;
+      }
+    }
+
+    @media (max-width: 1023px) {
+      .pd-section {
+        padding: 2.25rem 0;
+      }
+      .pd-table th {
+        width: 44%;
+        padding: 0.75rem 0.85rem;
+      }
+      .pd-table td {
+        padding: 0.75rem 0.85rem;
+      }
+      .pd-stage img {
+        padding: 1.25rem;
+      }
+      .pd-nav {
+        display: none;
+      }
+    }
+  </style>
+
+  <script is:inline define:vars={{ GALLERY: gallery }}>
     (function () {
-      var gallery = GALLERY;
+      var gallery = GALLERY || [];
       var main = document.getElementById('gallery-main');
       var stage = document.getElementById('gallery-stage');
       var thumbs = document.querySelectorAll('.gallery-thumb');
       var current = 0;
+      var med = function (u) {
+        return String(u || '').replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
+      };
 
-      function setImg(idx, fromThumb) {
+      function highlight(idx) {
+        thumbs.forEach(function (t, i) {
+          t.classList.toggle('on', i === idx);
+        });
+      }
+      function setImg(idx) {
         if (!gallery.length) return;
         idx = (idx + gallery.length) % gallery.length;
         current = idx;
-        if (main) main.src = gallery[idx].replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
-        thumbs.forEach(function (t, i) {
-          t.classList.toggle('border-[#0071e3]', i === idx);
-          t.classList.toggle('border-transparent', i !== idx);
-        });
+        if (main) main.src = med(gallery[idx]);
+        highlight(idx);
       }
       thumbs.forEach(function (t, i) {
-        t.addEventListener('click', function () { setImg(i, true); });
+        t.addEventListener('click', function () {
+          setImg(i);
+        });
       });
-      // 主图左右切换按钮（不打开灯箱）
       var stagePrev = document.getElementById('stage-prev');
       var stageNext = document.getElementById('stage-next');
-      if (stagePrev) stagePrev.addEventListener('click', function (e) { e.stopPropagation(); setImg(current - 1); });
-      if (stageNext) stageNext.addEventListener('click', function (e) { e.stopPropagation(); setImg(current + 1); });
+      if (stagePrev)
+        stagePrev.addEventListener('click', function (e) {
+          e.stopPropagation();
+          setImg(current - 1);
+        });
+      if (stageNext)
+        stageNext.addEventListener('click', function (e) {
+          e.stopPropagation();
+          setImg(current + 1);
+        });
 
-      // ---- 灯箱 ----
+      // ---- lightbox ----
       var lb = document.getElementById('lightbox');
       var lbImg = document.getElementById('lb-img');
       var lbCounter = document.getElementById('lb-counter');
       var lbClose = document.getElementById('lb-close');
+      var lbBg = document.getElementById('lightbox-bg');
       var lbPrev = document.getElementById('lb-prev');
       var lbNext = document.getElementById('lb-next');
-      var lbBg = document.getElementById('lightbox-bg');
 
       function openLb(idx) {
         if (!gallery.length) return;
         current = (idx + gallery.length) % gallery.length;
         lbImg.src = gallery[current];
-        lbCounter.textContent = (current + 1) + ' / ' + gallery.length;
+        lbCounter.textContent = current + 1 + ' / ' + gallery.length;
         lb.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         if (lbPrev) lbPrev.style.display = gallery.length > 1 ? '' : 'none';
         if (lbNext) lbNext.style.display = gallery.length > 1 ? '' : 'none';
-        // 同步主图 + 缩略图高亮（灯箱与页面主图保持一致）
-        if (main) main.src = gallery[current].replace(/\.(jpg|jpeg|png)$/i, '-med.webp');
-        thumbs.forEach(function (t, i) {
-          t.classList.toggle('border-[#0071e3]', i === current);
-          t.classList.toggle('border-transparent', i !== current);
-        });
+        if (main) main.src = med(gallery[current]); // keep the page image in sync with the lightbox
+        highlight(current);
       }
       function closeLb() {
         lb.classList.add('hidden');
         document.body.style.overflow = '';
       }
-      function move(d) { openLb(current + d); }
+      function move(d) {
+        openLb(current + d);
+      }
 
       if (stage) stage.addEventListener('click', function () { openLb(current); });
-      if (stage) stage.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(current); }
-      });
+      if (stage)
+        stage.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openLb(current);
+          }
+        });
       if (lbClose) lbClose.addEventListener('click', closeLb);
       if (lbBg) lbBg.addEventListener('click', closeLb);
       if (lbPrev) lbPrev.addEventListener('click', function () { move(-1); });
@@ -413,7 +1001,6 @@ const highlights = scored.slice(0, 4).map(([k, v]) => {
         if (e.key === 'ArrowLeft') move(-1);
         if (e.key === 'ArrowRight') move(1);
       });
-      // 触摸滑动切换
       var touchX = null;
       lb.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
       lb.addEventListener('touchend', function (e) {
@@ -422,6 +1009,25 @@ const highlights = scored.slice(0, 4).map(([k, v]) => {
         if (Math.abs(dx) > 50) move(dx < 0 ? 1 : -1);
         touchX = null;
       }, { passive: true });
+    })();
+
+    // on-this-page scrollspy (ids come from the rendered rail so they cannot drift)
+    (function () {
+      var links = [].slice.call(document.querySelectorAll('[data-toc-link]'));
+      if (!links.length) return;
+      var ids = links.map(function (a) { return a.getAttribute('data-toc-link').slice(1); });
+      function up() {
+        var cur = ids[0];
+        ids.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top < 160) cur = id;
+        });
+        links.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('data-toc-link') === '#' + cur);
+        });
+      }
+      document.addEventListener('scroll', up, { passive: true });
+      up();
     })();
   </script>
 </Layout>

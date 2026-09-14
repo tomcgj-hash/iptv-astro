@@ -8,8 +8,7 @@
 // ============================================================
 import Layout from '../layouts/Layout.astro';
 import { PRODUCTS, CAT_NAMES } from '../data/products';
-
-const short = (s, n) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
+import { short, thumbOf, modelOf, teasersOf } from '../lib/product';
 
 // ---------- categories (real counts, biggest first) ----------
 const CATS = Object.entries(CAT_NAMES)
@@ -21,36 +20,14 @@ const TOTAL = PRODUCTS.length;
 const CAT_COUNT = CATS.length;
 const DATASHEET_COUNT = PRODUCTS.filter((p) => p.source_pdf).length;
 
-// ---------- card-level derived data ----------
-// model: leading token of the product name (e.g. "FUQ4339KN V2 Network Encoder 48 HDMI" -> FUQ4339KN)
-const modelOf = (p) => {
-  const parts = String(p.name || '').trim().split(/\s+/);
-  const first = parts[0] || '';
-  const second = parts[1] || '';
-  const m = first.length >= 3 ? first : `${first} ${second}`.trim();
-  return m.replace(/[,;]$/, '');
-};
-
-// up to two short, comparable specs for the card face (prefers the specs buyers scan for)
-const SPEC_PRIORITY = ['input', 'output', 'channel', 'capacity', 'resolution', 'frequency', 'standard', 'interface', 'format', 'rate', 'modulation', 'encoding'];
-const teasersOf = (p) =>
-  Object.entries(p.specs || {})
-    .filter(([k, v]) => v && String(k).length <= 28 && String(v).length <= 58)
-    .map(([k, v]) => {
-      const lk = k.toLowerCase();
-      const rank = SPEC_PRIORITY.findIndex((s) => lk.includes(s));
-      return { k: short(k.replace(/\s*[:]\s*$/, ''), 20), v: short(v, 34), rank: rank === -1 ? 99 : rank };
-    })
-    .sort((a, b) => a.rank - b.rank)
-    .slice(0, 2);
-
+// ---------- card-level derived data (all helpers live in lib/product.js) ----------
 const CARDS = PRODUCTS.map((p) => {
   const catLabel = CAT_NAMES[p.category] || p.category;
   const specs = p.specs || {};
   return {
     slug: p.slug,
     name: p.name,
-    image: (p.image || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp') || p.image,
+    image: thumbOf(p.image),
     cat: p.category,
     catLabel,
     model: modelOf(p),
