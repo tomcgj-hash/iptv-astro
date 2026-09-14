@@ -1,13 +1,13 @@
 ---
-// Layout.astro — 全站公共布局
-// 规则要求：Tailwind CDN、Font Awesome、jQuery、header/footer 模块化 fetch 引入
+// Layout.astro — shared site layout
+// Conventions: Tailwind CDN, Font Awesome, jQuery, header/footer loaded via fetch
 import '../styles/global.css';
 
 interface Props {
   title?: string;
   description?: string;
-  schema?: object; // JSON-LD schema 对象（符合 SEO 要求）
-  breadcrumbs?: { name: string; url: string }[]; // 面包屑
+  schema?: object; // JSON-LD schema object
+  breadcrumbs?: { name: string; url: string }[]; // breadcrumb trail
 }
 
 const {
@@ -17,7 +17,7 @@ const {
   breadcrumbs,
 } = Astro.props;
 
-// 默认 WebSite schema（SEO）
+// default Organization schema
 const siteSchema = schema || {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -37,6 +37,14 @@ const siteSchema = schema || {
     <link rel="icon" href="/favicon.ico" />
     <link rel="canonical" href={Astro.site ? new URL(Astro.url.pathname, Astro.site).toString() : undefined} />
 
+    <!-- Typeface: Inter (design system font; falls back to system fonts if the CDN is unreachable) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+
     <!-- Tailwind CSS (CDN) -->
     <script is:inline src="https://cdn.tailwindcss.com"></script>
     <script is:inline>
@@ -53,10 +61,10 @@ const siteSchema = schema || {
       };
     </script>
 
-    <!-- Font Awesome 图标库 -->
+    <!-- Font Awesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- 自定义样式 -->
+    <!-- Custom styles -->
     <link rel="stylesheet" href="/css/style.css" />
 
     <!-- SEO: JSON-LD Schema -->
@@ -73,7 +81,7 @@ const siteSchema = schema || {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="/images/logo.svg" />
 
-    <!-- Pagefind 自定义 meta（供搜索结果展示缩略图等） -->
+    <!-- Pagefind custom meta (search result thumbnails) -->
     {
       Astro.props.image && (
         <meta name="pagefind-meta-image" content={Astro.props.image} />
@@ -86,10 +94,10 @@ const siteSchema = schema || {
     }
   </head>
   <body class="flex min-h-screen flex-col text-slate-900 antialiased">
-    <!-- 公共头部占位符（由 js/main.js fetch 引入 header.html） -->
+    <!-- Header placeholder (filled by js/main.js from header.html) -->
     <div id="header"></div>
 
-    <!-- 面包屑导航（可选） -->
+    <!-- Breadcrumbs (optional) -->
     {
       breadcrumbs && breadcrumbs.length > 0 && (
         <nav class="bg-slate-50 border-b border-slate-100" aria-label="Breadcrumb">
@@ -112,17 +120,17 @@ const siteSchema = schema || {
       )
     }
 
-    <!-- 主内容 -->
+    <!-- Main content -->
     <main class="flex-1">
       <slot />
     </main>
 
-    <!-- 公共页脚占位符（由 js/main.js fetch 引入 footer.html） -->
+    <!-- Footer placeholder (filled by js/main.js from footer.html) -->
     <div id="footer"></div>
 
-    <!-- jQuery (本地文件) -->
+    <!-- jQuery (local file) -->
     <script is:inline src="/js/jquery-2.2.4.min.js"></script>
-    <!-- 全站公共脚本 -->
+    <!-- Shared site script -->
     <script is:inline src="/js/main.js"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 <!-- ============================================================
-  header.html — 公共头部（模块化独立文件）V4 明亮白色
-  由 js/main.js 用 fetch 动态引入，占位符 <div id="header"></div>
-  支持一级 / 二级 / 三级菜单，滚动时固定（白色磨砂玻璃）
+  header.html — shared header (standalone module)
+  Injected by js/main.js via fetch into the <div id="header"></div> placeholder
+  Multi-level dropdown menus; fixed on scroll with a frosted-glass background
   ============================================================ -->
 <header class="site-header">
   <div class="container mx-auto max-w-7xl px-4">
@@ -12,14 +12,14 @@
         <span class="text-xl font-bold text-slate-900 tracking-tight">IPTV<span class="gradient-text">Stream</span></span>
       </a>
 
-      <!-- 桌面端导航（一级/二级/三级菜单） -->
+      <!-- Desktop navigation -->
       <nav class="hidden lg:flex items-center gap-1" aria-label="Main navigation">
-        <!-- 一级菜单 -->
+        <!-- Home -->
         <div class="nav-item relative">
           <a href="/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">Home</a>
         </div>
 
-        <!-- 一级菜单：Products -->
+        <!-- Products -->
         <div class="nav-item relative">
           <a href="/products/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
             Products <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
@@ -52,7 +52,7 @@
           </div>
         </div>
 
-        <!-- 一级菜单：Blog -->
+        <!-- Blog -->
         <div class="nav-item relative">
           <a href="/blog/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
             Blog <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
@@ -76,7 +76,7 @@
           </div>
         </div>
 
-        <!-- 一级菜单：Solutions -->
+        <!-- Solutions -->
         <div class="nav-item relative">
           <a href="/solutions/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
             Solutions <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
@@ -97,14 +97,14 @@
           </div>
         </div>
 
-        <!-- 一级菜单：Contact（独立入口） -->
+        <!-- Contact -->
         <div class="nav-item relative">
           <a href="/contact/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
             Contact
           </a>
         </div>
 
-        <!-- 二级菜单：Support -->
+        <!-- Support -->
         <div class="nav-item relative">
           <a href="/faq/" class="inline-flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-slate-600 hover:text-slate-900 transition-colors">
             Support <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
@@ -126,23 +126,27 @@
         </div>
       </nav>
 
-      <!-- 右侧操作按钮 -->
+      <!-- Right-hand actions -->
       <div class="flex items-center gap-3">
-        <!-- 搜索入口 -->
-        <a href="/search/" class="inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 hover:bg-[#f5f5f7] rounded-full transition-colors" aria-label="Search">
+        <!-- Site search: input on wide screens, icon link on small ones -->
+        <form class="hidden xl:flex items-center gap-2 bg-[#f5f5f7] border border-[#e8e8ed] rounded-full pl-4 pr-3 py-2 w-[230px]" action="/search/" method="get" role="search">
+          <i class="fas fa-magnifying-glass text-[13px] text-[#86868b]"></i>
+          <input type="search" name="q" id="nav-search-input" placeholder="Search products…" autocomplete="off" aria-label="Search products" class="border-0 bg-transparent outline-none text-[13.5px] text-slate-700 w-full">
+        </form>
+        <a href="/search/" class="xl:hidden inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 hover:bg-[#f5f5f7] rounded-full transition-colors" aria-label="Search">
           <i class="fas fa-magnifying-glass text-base"></i>
         </a>
         <a href="/contact/" class="hidden sm:inline-flex items-center gap-2 btn-primary text-[15px] px-6 py-2.5">
           <i class="fas fa-paper-plane"></i> Get a Quote
         </a>
-        <!-- 移动端汉堡按钮 -->
+        <!-- Mobile menu toggle -->
         <button type="button" class="lg:hidden inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 rounded-lg" id="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
           <i class="fas fa-bars text-lg"></i>
         </button>
       </div>
     </div>
 
-    <!-- 移动端菜单 -->
+    <!-- Mobile menu -->
     <div class="mobile-menu lg:hidden pb-4" id="mobile-menu">
       <a href="/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Home</a>
       <a href="/products/" class="block px-4 py-3 text-[15px] font-medium rounded-lg">Products</a>
@@ -156,9 +160,9 @@
   </div>
 </header>
 
-<!-- 移动端底部导航栏（仅手机/平板显示，桌面隐藏）
-     注意：必须放在 <header> 标签之外，因为 .site-header 的
-     backdrop-filter 会创建定位上下文，导致 fixed 定位失效 -->
+<!-- Mobile bottom navigation (phones/tablets only, hidden on desktop)
+     NOTE: must sit outside the <header> element — .site-header uses
+     backdrop-filter, which creates a containing block and breaks position:fixed -->
 <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
   <a href="/" class="mobile-nav-item" data-nav="/">
     <i class="fas fa-house text-lg"></i>
