@@ -6,15 +6,15 @@ const contactSchema = {
   '@type': 'ContactPage',
   name: 'Contact IPTVStream',
   url: 'https://www.iptv-demo.example.com/contact/',
-  description: 'Contact IPTVStream — 24/7 support by email, WhatsApp or the contact form. We reply within minutes.',
+  description: 'Send a requirement to IPTVStream: the model number, or the channel count and input/output formats. We answer with the datasheet, the configuration and a written quotation.',
   mainEntity: {
     '@type': 'Organization',
     name: 'IPTVStream',
     email: 'sales@coaxtoiptv.com',
     contactPoint: {
       '@type': 'ContactPoint',
-      contactType: 'customer support',
-      availableLanguage: ['English', 'French', 'Spanish', 'Arabic'],
+      contactType: 'sales',
+      availableLanguage: ['English', 'Chinese'],
     },
   },
 };
@@ -23,16 +23,16 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
 ---
 
 <Layout
-  title="Contact IPTVStream — 24/7 Customer Support"
-  description="Contact IPTVStream anytime — 24/7 support by email, WhatsApp or our contact form. We typically reply within minutes. Get help with setup, billing or channel requests."
+  title="Contact - Send Your Requirement | IPTVStream"
+  description="Send the model number, or the channel count and input/output formats. We answer with the datasheet, the configuration and a written quotation."
   schema={contactSchema}
   breadcrumbs={breadcrumbs}
 >
   <!-- ===== 页面标题 ===== -->
   <section class="bg-white py-20 lg:py-28 text-center border-b border-[#e8e8ed]" aria-label="Contact overview">
     <div class="container mx-auto max-w-3xl px-4">
-      <h1 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] mb-4">We're Here to Help</h1>
-      <p class="text-[#6e6e73] text-lg">Questions, setup help or channel requests — our team replies within minutes, 24/7.</p>
+      <h1 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] mb-4">Tell us what you are specifying</h1>
+      <p class="text-[#6e6e73] text-lg">The model number, or the channel count and the input/output formats — that is enough for us to answer with the datasheet in hand.</p>
     </div>
   </section>
 
@@ -47,7 +47,7 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
           </div>
           <div>
             <h2 class="font-bold text-[#1d1d1f]">WhatsApp</h2>
-            <p class="text-sm text-[#86868b] mt-1">Fastest way to reach us — typically replies within minutes.</p>
+            <p class="text-sm text-[#86868b] mt-1">Quick questions and photos of the rack or the channel list.</p>
             <a href="https://wa.me/8613922702227" class="text-[#0071e3] text-sm font-semibold hover:underline mt-2 inline-block">Chat on WhatsApp <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
           </div>
         </article>
@@ -59,17 +59,17 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
           <div>
             <h2 class="font-bold text-[#1d1d1f]">Email</h2>
             <p class="text-sm text-[#86868b] mt-1">sales@coaxtoiptv.com</p>
-            <p class="text-sm text-[#86868b]">We reply to all emails within 24 hours.</p>
+            <a href="/contact/" class="text-[#0071e3] text-sm font-semibold hover:underline mt-2 inline-block">Use the form below <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
           </div>
         </article>
 
         <article class="bg-white rounded-2xl p-6 border border-[#e8e8ed] flex items-start gap-4">
           <div class="w-11 h-11 bg-gradient-to-r from-[#0071e3] to-[#0a84ff]/10 text-[#0071e3] rounded-xl inline-flex items-center justify-center shrink-0">
-            <i class="fab fa-telegram-plane text-xl"></i>
+            <i class="fas fa-list-check text-xl"></i>
           </div>
           <div>
-            <h2 class="font-bold text-[#1d1d1f]">Telegram</h2>
-            <p class="text-sm text-[#86868b] mt-1">@iptvstream_support</p>
+            <h2 class="font-bold text-[#1d1d1f]">What to include</h2>
+            <p class="text-sm text-[#86868b] mt-1">Model number — or channel count, input sources, output standard and rack space.</p>
           </div>
         </article>
 
@@ -78,8 +78,8 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
             <i class="fas fa-clock text-xl"></i>
           </div>
           <div>
-            <h2 class="font-bold text-[#1d1d1f]">Support Hours</h2>
-            <p class="text-sm text-[#86868b] mt-1">24 hours a day, 7 days a week — including holidays.</p>
+            <h2 class="font-bold text-[#1d1d1f]">Where we are</h2>
+            <p class="text-sm text-[#86868b] mt-1">Guangzhou, China · UTC+8 · 09:00-18:00 China time, Monday to Friday.</p>
           </div>
         </article>
       </div>
@@ -91,7 +91,7 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
           <input type="hidden" name="subject" value="New inquiry from IPTVStream website" />
           <input type="hidden" name="from_name" value="IPTVStream Website" />
           <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
-          <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">Send Us a Message</h2>
+          <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">Send your requirement</h2>
           <div class="grid sm:grid-cols-2 gap-5">
             <div>
               <label for="name" class="block text-sm font-semibold text-[#6e6e73] mb-2">Your Name</label>
@@ -99,22 +99,22 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
             </div>
             <div>
               <label for="email" class="block text-sm font-semibold text-[#6e6e73] mb-2">Email Address</label>
-              <input type="email" id="email" name="email" required placeholder="sales@coaxtoiptv.com" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent" />
+              <input type="email" id="email" name="email" required placeholder="you@company.com" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent" />
             </div>
           </div>
           <div class="mt-5">
             <label for="subject" class="block text-sm font-semibold text-[#6e6e73] mb-2">Subject</label>
             <select id="subject" name="subject" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent">
-              <option value="general">General question</option>
-              <option value="setup">Setup help</option>
-              <option value="billing">Billing / payment</option>
               <option value="quote">Equipment quote</option>
-              <option value="support">Technical support</option>
+              <option value="technical">Technical question</option>
+              <option value="oem">OEM / ODM enquiry</option>
+              <option value="shipping">Shipping &amp; documents</option>
+              <option value="general">Other</option>
             </select>
           </div>
           <div class="mt-5">
             <label for="message" class="block text-sm font-semibold text-[#6e6e73] mb-2">Message</label>
-            <textarea id="message" name="message" rows="5" required placeholder="How can we help?" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent"></textarea>
+            <textarea id="message" name="message" rows="5" required placeholder="Model numbers, channel count, input/output formats, quantity…" class="w-full border border-[#e8e8ed] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3] focus:border-transparent"></textarea>
           </div>
           <div id="form-status" class="hidden mt-4 text-sm font-medium"></div>
           <button type="submit" id="submit-btn" class="btn-primary mt-6 w-full justify-center">

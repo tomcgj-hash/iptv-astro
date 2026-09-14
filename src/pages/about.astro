@@ -1,126 +1,462 @@
 ---
+// ============================================================
+// about.astro - what the catalogue is and how an order runs
+// Rewritten 2026-09-14. The previous version claimed things nobody can verify
+// (ISO 9001 certified factory, "since 2005", "20+ years", "50 countries",
+// in-house R&D "not white-labeled", "no middlemen", lifetime support) and used a
+// stock photo of people in an office as a "factory team" picture. All of that is
+// gone: this page now states only what the catalogue itself documents, plus the
+// process, and lists the company facts that are confirmed per order instead of
+// asserting them.
+// ============================================================
 import Layout from '../layouts/Layout.astro';
+import { PRODUCTS, CAT_NAMES } from '../data/products';
+import { modelOf, thumbOf, short } from '../lib/product';
 
-const aboutSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'IPTVStream Broadcast',
-  url: 'https://www.iptv-demo.example.com',
-  description: 'Professional digital TV headend equipment manufacturer from China. ISO 9001 certified factory producing encoders, modulators, IP gateways, transmitters and antennas since 2005.',
-  foundingDate: '2005',
-  address: { '@type': 'PostalAddress', addressCountry: 'China', addressLocality: 'Guangzhou' },
-  areaServed: 'Worldwide',
-};
+const SITE = 'https://www.iptv-demo.example.com';
+const TOTAL = PRODUCTS.length;
 
-const values = [
-  { icon: 'fas fa-certificate', title: 'ISO 9001 Certified', desc: 'Quality management system certified to ISO 9001 with strict testing at every production stage.' },
-  { icon: 'fas fa-lightbulb', title: 'In-House R&D', desc: 'Products designed and developed by our own engineering team — not white-labeled from other factories.' },
-  { icon: 'fas fa-handshake', title: 'Factory Direct', desc: 'No middlemen. Buy directly from the manufacturer with transparent pricing and full support.' },
-  { icon: 'fas fa-shield-halved', title: 'Lifetime Support', desc: 'Every order includes lifetime technical support and remote diagnostics for your system.' },
+const CATS = Object.entries(CAT_NAMES)
+  .map(([id, label]) => ({ id, label, count: PRODUCTS.filter((p) => p.category === id).length }))
+  .filter((c) => c.count > 0)
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+const DATASHEETS = PRODUCTS.filter((p) => p.source_pdf).length;
+
+// shown in the hero panel: three real models from three different points of the chain
+const showcase = [
+  PRODUCTS.find((p) => /FUQ4339KN V2 Network Encoder/i.test(p.name)),
+  PRODUCTS.find((p) => /FUQ8322 .*DVB-T/i.test(p.name)),
+  PRODUCTS.find((p) => /FM Stereo Broadcast Transmitter 10W-10kW/i.test(p.name)),
+].filter(Boolean);
+
+const RANGES = [
+  ['HDMI inputs in one chassis', '1 to 48'],
+  ['DVB-T transmitters', '10 W to 3 kW'],
+  ['FM stereo transmitters', '10 W to 10 kW'],
+  ['EPG systems', 'up to 2044 TS streams'],
+  ['QAM modulator density', '16 to 24 tuners per unit'],
+  ['Published datasheets', `${DATASHEETS} of ${TOTAL} models`],
 ];
 
-const milestones = [
-  { year: '2005', event: 'Founded in Guangzhou, China as a broadcast equipment manufacturer.' },
-  { year: '2009', event: 'Expanded into digital TV headend equipment: encoders, modulators and multiplexers.' },
-  { year: '2015', event: 'ISO 9001 certification achieved; exports reached 30 countries.' },
-  { year: '2020', event: 'Launched all-in-one IPTV gateway servers and hotel IPTV solutions.' },
-  { year: '2026', event: 'Trusted by broadcasters, integrators and ISPs in 50+ countries worldwide.' },
+const STEPS = [
+  {
+    n: '01',
+    t: 'Send the requirement',
+    d: 'Channel count, input sources, output standard, rack space and the market you deliver to. A photo of the rack or a channel list is enough to start.',
+  },
+  {
+    n: '02',
+    t: 'Model list and channel plan',
+    d: 'We come back with the specific models, how they connect, and what each one does in the chain — not a generic brochure list.',
+  },
+  {
+    n: '03',
+    t: 'Confirm against the datasheet',
+    d: 'Every parameter on the model pages comes from the manufacturer datasheet shipped with that model. If a detail is not in it, we ask the factory rather than guess.',
+  },
+  {
+    n: '04',
+    t: 'Order, shipping and support',
+    d: 'Quotation, payment terms and freight options are confirmed in writing, with technical support on the models supplied.',
+  },
+];
+
+const CONFIRMED_PER_ORDER = [
+  ['MOQ and price breaks', 'Quoted per model and per quantity — no list price is published here.'],
+  ['Lead time', 'Confirmed against the factory schedule at the time of the enquiry.'],
+  ['Warranty and service terms', 'Stated in the quotation so the terms are on the record before you order.'],
+  ['Certification documents', 'CE, RoHS and other declarations are requested for the specific model when your market needs them.'],
+  ['Packing and freight', 'Carton or flight-case packing, air or sea, with the documentation your customs broker needs.'],
+];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'IPTVStream Broadcast',
+    url: SITE,
+    description: `${TOTAL} models of digital TV headend equipment — encoders, encoder-modulators, modulators, IP gateways, IRDs, multiplexers, EPG and IPTV server software, DVB-T and FM transmitters. Every model is published with its datasheet.`,
+    address: { '@type': 'PostalAddress', addressCountry: 'China', addressLocality: 'Guangzhou' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'About', item: `${SITE}/about/` },
+    ],
+  },
 ];
 
 const breadcrumbs = [{ name: 'About', url: '/about/' }];
 ---
 
 <Layout
-  title="About Us — Professional Broadcast Equipment Manufacturer | IPTVStream Broadcast"
-  description="IPTVStream Broadcast is an ISO 9001 certified manufacturer of digital TV headend equipment since 2005. Factory-direct encoders, modulators, IPTV gateways and transmitters for 50+ countries."
-  schema={aboutSchema}
+  title="About - The Headend Line We Supply | IPTVStream"
+  description={`What this catalogue contains: ${TOTAL} digital TV headend models in ${CATS.length} categories, each with its published datasheet, and how an enquiry runs from requirements to shipping.`}
+  schema={schema}
   breadcrumbs={breadcrumbs}
 >
-  <!-- ===== Hero ===== -->
-  <section class="relative bg-white py-20 lg:py-28 text-center border-b border-[#e8e8ed] overflow-hidden" aria-label="About overview">
-    <img src="/images/general/about-banner.jpg" alt="" aria-hidden="true" loading="lazy"
-      class="absolute inset-0 w-full h-full object-cover opacity-[0.05]" />
-    <div class="relative container mx-auto max-w-3xl px-4">
-      <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">About Us</p>
-      <h1 class="text-3xl lg:text-5xl font-bold text-[#1d1d1f] mb-4">Professional Broadcast <span class="gradient-text">Equipment</span> Manufacturer</h1>
-      <p class="text-[#6e6e73] text-lg">Designing and manufacturing digital TV headend equipment in Guangzhou, China since 2005.</p>
-    </div>
-  </section>
-
-  <!-- ===== 公司介绍 ===== -->
-  <section class="py-16 lg:py-24 bg-white" aria-label="Company story">
-    <div class="container mx-auto max-w-6xl px-4">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <div class="text-[#86868b] leading-relaxed space-y-6 text-lg">
-          <p>
-            <strong class="text-[#1d1d1f]">IPTVStream Broadcast</strong> is a professional manufacturer of digital TV headend equipment. From our ISO 9001 certified factory in Guangzhou, we design and produce <strong class="text-[#1d1d1f]">encoders, modulators, IP gateways, multiplexers, transmitters and antennas</strong> used by broadcasters and system integrators worldwide.
+  <!-- ===== hero ===== -->
+  <section class="bg-white pt-10 pb-10 lg:pt-14 lg:pb-12" aria-label="About this catalogue">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16 items-start">
+        <div>
+          <p class="ab-eyebrow">About</p>
+          <h1 class="mt-3 text-[34px] lg:text-[54px] font-bold leading-[1.07] tracking-tight text-[#1d1d1f]">
+            One headend line,<br class="hidden lg:block" /> documented model by model
+          </h1>
+          <p class="mt-5 max-w-2xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+            This site is a working catalogue of the FMUSER FUQ digital TV headend line: {TOTAL} models across
+            {' '}{CATS.length} categories, each one published with the manufacturer datasheet that carries its
+            inputs, formats, dimensions and power. Nothing on a model page is written from memory — it is taken
+            from that document.
           </p>
-          <p>
-            With <strong class="text-[#1d1d1f]">20+ years of manufacturing experience</strong>, our equipment powers thousands of deployments — from single-site headends to national broadcast networks — in more than <strong class="text-[#1d1d1f]">50 countries</strong>.
+          <p class="mt-4 max-w-2xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+            We are an export desk, not a photo booth: the pages show the equipment, the specifications behind it,
+            and the way a project gets specified. Commercial terms are confirmed in writing per order.
           </p>
-          <p>
-            We believe in <strong class="text-[#1d1d1f]">factory-direct relationships</strong>: you work directly with the people who design and build your equipment. That means better pricing, faster support and equipment built around your actual requirements.
-          </p>
-        </div>
-        <div class="relative">
-          <img src="/images/general/about-banner.jpg" alt="IPTVStream Broadcast factory team" loading="lazy"
-            class="rounded-3xl shadow-xl w-full object-cover aspect-[4/3]" />
-          <div class="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl border border-[#e8e8ed] px-6 py-4 hidden sm:block">
-            <p class="text-2xl font-bold text-[#0071e3]">50+</p>
-            <p class="text-xs text-[#86868b]">Countries served</p>
+          <div class="ab-cta">
+            <a href="/products/" class="btn-primary text-base px-8 py-3.5">
+              <i class="fas fa-box" aria-hidden="true"></i> Browse the catalogue
+            </a>
+            <a href="/contact/" class="ab-btn-quiet text-base px-8 py-3.5">
+              <i class="fas fa-paper-plane" aria-hidden="true"></i> Send a requirement
+            </a>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ===== 里程碑 ===== -->
-  <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Milestones">
-    <div class="container mx-auto max-w-4xl px-4">
-      <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] text-center mb-14">Our <span class="gradient-text">Journey</span></h2>
-      <div class="space-y-0 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-        {
-          milestones.map((m) => (
-            <div class="relative pl-10 pb-10 last:pb-0">
-              <div class="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#0071e3] ring-4 ring-[#0071e3]/20"></div>
-              <p class="font-bold text-[#0071e3] text-sm">{m.year}</p>
-              <p class="text-[#6e6e73] mt-1">{m.event}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 价值观 ===== -->
-  <section class="py-16 lg:py-24 bg-white" aria-label="Our values">
-    <div class="container mx-auto max-w-7xl px-4">
-      <h2 class="text-2xl lg:text-3xl font-bold text-[#1d1d1f] text-center mb-12">What We Stand For</h2>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {
-          values.map((v) => (
-            <article class="bg-[#f5f5f7] rounded-2xl p-7 border border-[#e8e8ed] card-hover text-center">
-              <div class="w-12 h-12 bg-gradient-to-r from-[#0071e3] to-[#0a84ff]/10 text-[#0071e3] rounded-xl inline-flex items-center justify-center mb-5 mx-auto">
-                <i class={`${v.icon} text-xl`}></i>
+        <div class="ab-panel">
+          <p class="ab-panel-title">Three points of the chain</p>
+          {showcase.map((p) => (
+            <a href={`/products/${p.slug}/`} class="ab-show">
+              <div class="ab-show-thumb">
+                <img src={thumbOf(p.image)} alt={p.name} loading="lazy" decoding="async" />
               </div>
-              <h3 class="font-bold text-[#1d1d1f] mb-2">{v.title}</h3>
-              <p class="text-[#86868b] text-sm leading-relaxed">{v.desc}</p>
-            </article>
-          ))
-        }
+              <div class="min-w-0">
+                <span class="ab-show-id">{modelOf(p)}</span>
+                <p>{short(p.name.replace(/^FUQ[-\s]*[A-Z0-9-]+\s*/i, ''), 58) || p.name}</p>
+              </div>
+            </a>
+          ))}
+          <p class="ab-panel-foot">Every model links to its specification table and datasheet.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== CTA ===== -->
-  <section class="py-20 lg:py-24 bg-[#f5f5f7]" aria-label="Contact us">
-    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
-      <h2 class="text-3xl font-bold text-[#1d1d1f] mb-4">Partner with Our <span class="gradient-text">Factory</span></h2>
-      <p class="text-[#6e6e73] text-lg mb-8">Whether you need one unit or a national deployment, our team is ready to help.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/contact/" class="btn-primary text-base px-10 py-4"><i class="fas fa-paper-plane"></i> Contact Us</a>
-        <a href="/products/" class="btn-ghost text-base px-10 py-4"><i class="fas fa-box"></i> Browse Products</a>
+  <!-- ===== what the catalogue covers ===== -->
+  <section class="border-t border-[#e8e8ed] bg-white py-12 lg:py-16" aria-label="Catalogue contents">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="ab-h2">What the catalogue covers</h2>
+      <p class="ab-lead">
+        {TOTAL} models in {CATS.length} groups. Pick a group to filter the catalogue — every listing there is a real
+        model page with its own datasheet.
+      </p>
+      <div class="ab-cats">
+        {CATS.map((c) => (
+          <a href={`/products/?cat=${c.id}`} class="ab-cat">
+            <span class="ab-cat-n">{c.count}</span>
+            <span class="ab-cat-l">{c.label}</span>
+          </a>
+        ))}
       </div>
     </div>
   </section>
+
+  <!-- ===== ranges ===== -->
+  <section class="border-t border-[#e8e8ed] bg-white py-12 lg:py-16" aria-label="Ranges in the catalogue">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="ab-h2">What the range actually spans</h2>
+      <p class="ab-lead">Ranges taken from the model names in the catalogue itself, not from a marketing sheet.</p>
+      <dl class="ab-ranges">
+        {RANGES.map(([k, v]) => (
+          <div>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <!-- ===== process ===== -->
+  <section class="border-t border-[#e8e8ed] bg-white py-12 lg:py-16" aria-label="How an order runs">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="ab-h2">How an enquiry runs</h2>
+      <div class="ab-steps">
+        {STEPS.map((s) => (
+          <div class="ab-step">
+            <span class="ab-step-n">{s.n}</span>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== confirmed per order ===== -->
+  <section class="border-t border-[#e8e8ed] bg-[#f5f5f7] py-12 lg:py-16" aria-label="Confirmed per order">
+    <div class="container mx-auto max-w-7xl px-4">
+      <h2 class="ab-h2">Confirmed per order, not claimed on a web page</h2>
+      <p class="ab-lead">
+        Anything that depends on your market, your quantity or the factory schedule is answered in writing for your
+        enquiry, so you can put it in your procurement file:
+      </p>
+      <dl class="ab-terms">
+        {CONFIRMED_PER_ORDER.map(([k, v]) => (
+          <div>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <a href="/contact/" class="btn-primary mt-8 text-base px-8 py-3.5">
+        <i class="fas fa-comments" aria-hidden="true"></i> Ask for the details
+      </a>
+    </div>
+  </section>
+
+  <style is:global>
+    .ab-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #0071e3;
+    }
+    .ab-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.8rem;
+    }
+    .ab-btn-quiet {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      border: 1px solid #d2d2d7;
+      border-radius: 999px;
+      color: #1d1d1f;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .ab-btn-quiet:hover {
+      background: #f5f5f7;
+    }
+    .ab-panel {
+      border: 1px solid #e8e8ed;
+      border-radius: 20px;
+      background: #f5f5f7;
+      padding: 1.15rem;
+    }
+    .ab-panel-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #86868b;
+      padding: 0 0.25rem 0.75rem;
+    }
+    .ab-show {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: #fff;
+      border: 1px solid #e8e8ed;
+      border-radius: 14px;
+      padding: 0.6rem;
+      margin-bottom: 0.55rem;
+      transition: border-color 0.2s, box-shadow 0.25s;
+    }
+    .ab-show:hover {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+    }
+    .ab-show-thumb {
+      flex: 0 0 auto;
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
+      background: #f5f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+    }
+    .ab-show-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .ab-show-id {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #0071e3;
+    }
+    .ab-show p {
+      margin-top: 0.15rem;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #1d1d1f;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .ab-panel-foot {
+      padding: 0.55rem 0.35rem 0.15rem;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #86868b;
+    }
+
+    .ab-h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #1d1d1f;
+    }
+    @media (min-width: 1024px) {
+      .ab-h2 {
+        font-size: 30px;
+      }
+    }
+    .ab-lead {
+      margin-top: 0.75rem;
+      max-width: 46rem;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #6e6e73;
+    }
+    .ab-cats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-top: 1.6rem;
+    }
+    @media (min-width: 768px) {
+      .ab-cats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .ab-cats {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+    .ab-cat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.25s, transform 0.25s;
+    }
+    .ab-cat:hover {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+      transform: translateY(-2px);
+    }
+    .ab-cat-n {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #1d1d1f;
+    }
+    .ab-cat-l {
+      font-size: 12.5px;
+      line-height: 1.4;
+      color: #6e6e73;
+    }
+    .ab-ranges,
+    .ab-terms {
+      display: grid;
+      gap: 0;
+      margin-top: 1.5rem;
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .ab-ranges > div,
+    .ab-terms > div {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.15rem;
+      padding: 0.9rem 1.1rem;
+    }
+    .ab-ranges > div + div,
+    .ab-terms > div + div {
+      border-top: 1px solid #f0f0f2;
+    }
+    @media (min-width: 640px) {
+      .ab-ranges > div,
+      .ab-terms > div {
+        grid-template-columns: 15rem minmax(0, 1fr);
+        gap: 1rem;
+        align-items: baseline;
+      }
+    }
+    .ab-ranges dt,
+    .ab-terms dt {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #86868b;
+    }
+    .ab-ranges dd,
+    .ab-terms dd {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1d1d1f;
+    }
+    .ab-steps {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.6rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    @media (min-width: 768px) {
+      .ab-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .ab-steps {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    .ab-step {
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      padding: 1.15rem 1.2rem 1.3rem;
+      background: #fff;
+    }
+    .ab-step-n {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #0071e3;
+    }
+    .ab-step h3 {
+      margin-top: 0.5rem;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+    .ab-step p {
+      margin-top: 0.45rem;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #6e6e73;
+    }
+  </style>
 </Layout>

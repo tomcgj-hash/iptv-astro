@@ -4,39 +4,39 @@ import Layout from '../layouts/Layout.astro';
 const faqs = [
   {
     q: 'Are you a manufacturer or a trading company?',
-    a: 'We are a manufacturer. All our equipment is designed, developed and produced in our own ISO 9001 certified factory in Guangzhou, China. You buy directly from the source — no middlemen.',
+    a: 'We are an export desk supplying the FMUSER FUQ headend line: the equipment is produced by the manufacturer, and we specify, quote, ship and support it for your project. That is why every model page on this site carries the manufacturer datasheet instead of rewritten sales copy.',
   },
   {
     q: 'What is the minimum order quantity (MOQ)?',
-    a: 'MOQ is 1 unit for most standard products. For OEM/ODM customization (custom branding, specifications or packaging), a minimum order applies — contact us for details.',
+    a: 'There is no blanket MOQ on this site — it is quoted per model. Standard units are normally available singly; custom branding, software configuration or custom packaging needs a minimum that we confirm with your quotation.',
   },
   {
     q: 'How fast will I receive a quotation?',
-    a: 'Standard quotations are sent within 24 hours. For complex projects with custom requirements, our engineers may need 2–3 days to prepare a full proposal.',
+    a: 'Quotations are prepared per enquiry: we check the model against its datasheet and the factory schedule first. A single-model enquiry is answered quickly; a full channel plan takes longer. Tell us your deadline and we will confirm what is realistic.',
   },
   {
     q: 'What payment methods do you accept?',
-    a: 'We accept bank transfer (T/T), PayPal and major credit cards for sample orders, and T/T or Letter of Credit for bulk orders. Full payment terms are provided with each quotation.',
+    a: 'Payment terms are set out in the written quotation. Bank transfer is the standard instrument; other options are agreed per order and per quantity.',
   },
   {
     q: 'How long does production and delivery take?',
-    a: 'Standard products ship within 3–7 days. Bulk orders typically take 15–30 days depending on quantity. We offer both air freight (3–7 days) and sea freight (20–40 days) worldwide.',
+    a: 'Lead time depends on the model and the position in the factory schedule, and is confirmed in the quotation. Air and sea freight are both arranged; transit time depends on the destination.',
   },
   {
     q: 'Do you provide OEM / ODM services?',
-    a: 'Yes. We offer full OEM/ODM services including custom branding, custom specifications, software customization and custom packaging for your product line.',
+    a: 'Custom branding, packaging and software configuration are possible on this line. Minimum quantities and lead time are confirmed per model before you commit to a build.',
   },
   {
     q: 'What warranty do you provide?',
-    a: 'All products come with a standard 12-month warranty covering manufacturing defects. Extended warranties and spare parts are available on request.',
+    a: 'Warranty and service terms are stated in the quotation for your order, together with spare-part availability, so the terms are on the record before the order is placed. We do not publish a blanket warranty period on this site.',
   },
   {
     q: 'Do you provide technical support after purchase?',
-    a: 'Yes — every order includes lifetime technical support. Our engineers provide remote diagnostics, configuration assistance and on-site support where required.',
+    a: 'Yes — configuration help, firmware and datasheet questions, and escalation to the factory when a unit needs service. The scope is confirmed with your order.',
   },
   {
     q: 'Can I get a sample before placing a bulk order?',
-    a: 'Absolutely. Sample orders are welcome and we recommend testing equipment with your own system before scaling up.',
+    a: 'Yes. Testing the unit inside your own system before scaling up is the sensible way to buy this kind of equipment.',
   },
 ];
 
@@ -55,8 +55,8 @@ const breadcrumbs = [{ name: 'FAQ', url: '/faq/' }];
 ---
 
 <Layout
-  title="FAQ — Manufacturing, MOQ, Shipping & OEM Questions | IPTVStream Broadcast"
-  description="Answers to common questions about our broadcast equipment factory: MOQ, quotation time, payment, shipping, OEM/ODM services, warranty and technical support."
+  title="FAQ - MOQ, Quotations, Shipping, OEM & Support | IPTVStream"
+  description="Answers on ordering the FMUSER FUQ headend line: MOQ, quotation turnaround, payment, lead time, OEM and ODM options, warranty terms and technical support."
   schema={faqSchema}
   breadcrumbs={breadcrumbs}
 >
@@ -65,7 +65,7 @@ const breadcrumbs = [{ name: 'FAQ', url: '/faq/' }];
     <div class="relative container mx-auto max-w-3xl px-4">
       <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">FAQ</p>
       <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">Frequently Asked <span class="gradient-text">Questions</span></h1>
-      <p class="text-[#6e6e73] text-lg">Everything you need to know about ordering from our factory.</p>
+      <p class="text-[#6e6e73] text-lg">Ordering, specifications, shipping and support — answered without the brochure talk.</p>
     </div>
   </section>
 
@@ -92,9 +92,9 @@ const breadcrumbs = [{ name: 'FAQ', url: '/faq/' }];
   <section class="py-16 lg:py-24 bg-[#f5f5f7]" aria-label="Ask a question">
     <div class="container mx-auto max-w-4xl px-4 text-center reveal">
       <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Still Have <span class="gradient-text">Questions?</span></h2>
-      <p class="text-[#6e6e73] text-lg mb-8">Our team responds to all inquiries within 24 hours.</p>
+      <p class="text-[#6e6e73] text-lg mb-8">Send the model or the requirement and we will answer with the datasheet in hand.</p>
       <a href="/contact/" class="btn-primary text-base px-10 py-4">
-        <i class="fas fa-comments"></i> Ask Us Anything
+        <i class="fas fa-comments"></i> Ask Your Question
       </a>
     </div>
   </section>

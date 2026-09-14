@@ -10,6 +10,7 @@ import Layout from '../layouts/Layout.astro';
 import { PRODUCTS, CAT_NAMES } from '../data/products';
 import { CAT_IMAGES } from '../data/catImages';
 import { getPosts } from '../data/posts';
+import { medOf, modelOf } from '../lib/product';
 
 const latestPosts = getPosts().slice(0, 3);
 
@@ -19,6 +20,11 @@ const catFirstImage = (cat) =>
 // ---------- hero stage uses a real product photo ----------
 const heroProduct = PRODUCTS.find((p) => p.category === 'encoder' && p.image) || PRODUCTS[0];
 const heroSpec = Object.values(heroProduct.specs || {})[0] || '';
+
+// ---------- dark band: shows a real product photo (the previous factory stock image was not ours) ----------
+const bandProduct = PRODUCTS.find((p) => /FUQ4339KN/i.test(p.name)) || heroProduct;
+const fmRange = '10 W - 10 kW';
+const dvbtRange = '10 W - 3 kW';
 
 // ---------- model finder data (generated at build time from the real catalogue) ----------
 const short = (s, n) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -81,14 +87,14 @@ const homeSchema = {
 
 <Layout
   title="Professional Digital TV Headend Equipment Manufacturer | IPTVStream Broadcast"
-  description={`Factory-direct digital TV headend equipment from China — encoders, modulators, IP gateways, multiplexers and transmitters. ${MODEL_COUNT} models in ${CAT_COUNT} categories, ISO 9001 certified, shipped to 50+ countries.`}
+  description={`Digital TV headend equipment — ${MODEL_COUNT} FMUSER FUQ models in ${CAT_COUNT} categories: encoders, encoder-modulators, modulators, IP gateways, IRDs, multiplexers, EPG and IPTV software, DVB-T and FM transmitters. Datasheet for every model.`}
   schema={homeSchema}
 >
   <!-- ===== Hero: centred headline + full-width product stage ===== -->
   <section class="pt-12 lg:pt-16 text-center" aria-label="Hero">
     <div class="container mx-auto max-w-7xl px-4">
       <p class="text-[12.5px] font-semibold tracking-[0.14em] uppercase text-[#86868b]">
-        Digital TV headend · Built in our own factory
+        Digital TV headend equipment · 191 models, one documented line
       </p>
       <h1
         class="mt-5 mb-5 text-[40px] sm:text-[58px] lg:text-[80px] font-semibold tracking-[-0.045em] leading-[1.02] text-[#1d1d1f] max-w-[17ch] mx-auto"
@@ -133,11 +139,11 @@ const homeSchema = {
     <div
       class="container mx-auto max-w-[1320px] px-4 py-5 lg:py-6 flex flex-wrap justify-center gap-x-10 gap-y-3 text-[13.5px] text-[#86868b] reveal"
     >
-      <span><b class="text-[#1d1d1f]">ISO 9001:2015</b> certified</span>
-      <span>CE · RoHS · FCC</span>
-      <span><b class="text-[#1d1d1f]">24-hour</b> burn-in on every unit</span>
-      <span><b class="text-[#1d1d1f]">50+</b> countries served</span>
-      <span><b class="text-[#1d1d1f]">12-month</b> warranty</span>
+      <span><b class="text-[#1d1d1f]">{MODEL_COUNT}</b> models in stock catalogue</span>
+      <span>Datasheet for <b class="text-[#1d1d1f]">every</b> model</span>
+      <span>HDMI encoders up to <b class="text-[#1d1d1f]">48</b> inputs</span>
+      <span>DVB-T <b class="text-[#1d1d1f]">{dvbtRange}</b> · FM <b class="text-[#1d1d1f]">{fmRange}</b></span>
+      <span>EPG systems to <b class="text-[#1d1d1f]">2044</b> TS streams</span>
     </div>
   </div>
 
@@ -275,30 +281,35 @@ const homeSchema = {
     </div>
   </section>
 
-  <!-- ===== Factory band (dark) ===== -->
-  <section class="bg-[#1d1d1f] py-20 lg:py-24" aria-label="The factory">
+  <!-- ===== The line (dark) ===== -->
+  <section class="bg-[#1d1d1f] py-20 lg:py-24" aria-label="The product line">
     <div class="container mx-auto max-w-7xl px-4">
       <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center reveal">
         <div>
-          <p class="text-[12.5px] font-semibold tracking-[0.14em] uppercase text-white/50">The factory</p>
+          <p class="text-[12.5px] font-semibold tracking-[0.14em] uppercase text-white/50">The line</p>
           <h2 class="mt-4 mb-4 text-[28px] lg:text-[44px] font-semibold tracking-[-0.035em] leading-[1.08] text-white">
-            We build what we ship.
+            One documented chain, model by model.
           </h2>
           <p class="text-[17px] lg:text-[18.5px] text-white/75 leading-relaxed">
-            SMT assembly, firmware, RF alignment and a 24-hour burn-in run happen on one site in Guangzhou.
-            Nothing is rebadged — the unit you receive is the unit we measured.
+            The catalogue is the FMUSER FUQ headend line: {MODEL_COUNT} models covering HDMI/SDI and IP encoding,
+            DVB-T/C/ISDB-T and QAM modulation, IP gateways, multiplexers, EPG and IPTV server software, and DVB-T
+            and FM transmitters from 10 W to 10 kW. Every unit is published with its own datasheet — the
+            specification we quote against, line by line.
           </p>
-          <a href="/about/" class="inline-flex items-center gap-2 text-[#5ac8fa] font-medium mt-6 text-[16px] hover:underline">
-            Inside the factory <i class="fas fa-arrow-right text-xs"></i>
+          <a href="/solutions/" class="inline-flex items-center gap-2 text-[#5ac8fa] font-medium mt-6 text-[16px] hover:underline">
+            How the chain fits together <i class="fas fa-arrow-right text-xs"></i>
           </a>
         </div>
-        <div class="bg-white/5 rounded-[28px] p-8 flex items-center justify-center h-[260px] lg:h-[380px]">
+        <div class="bg-white/5 rounded-[28px] p-6 lg:p-8 flex flex-col items-center justify-center gap-4">
           <img
-            src="/images/factory/factory-floor.jpg"
-            alt="Production line at our Guangzhou factory"
-            class="max-h-full object-contain rounded-[16px]"
+            src={medOf(bandProduct.image)}
+            alt={`${bandProduct.name} - ${modelOf(bandProduct)} rack unit`}
+            class="max-h-[220px] lg:max-h-[300px] object-contain rounded-[16px]"
             loading="lazy"
           />
+          <p class="text-[13.5px] text-white/60 text-center">
+            <b class="text-white/90">{modelOf(bandProduct)}</b> — 48 HDMI inputs, one 2-U chassis
+          </p>
         </div>
       </div>
     </div>
