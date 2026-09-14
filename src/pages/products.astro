@@ -1,133 +1,639 @@
 ---
+// ============================================================
+// products.astro - catalogue index (Direction D language, matches the homepage)
+// Structure: compact hero -> sticky filter toolbar (search / categories / sort)
+//            -> 4-across card grid (all models server-rendered for SEO; JS only filters)
+//            -> no-match panel -> closing CTA
+// Data: everything derived from products.js at build time (no hard-coded counts or models)
+// ============================================================
 import Layout from '../layouts/Layout.astro';
 import { PRODUCTS, CAT_NAMES } from '../data/products';
 
-const productSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'Broadcast Equipment — FM/AM/TV Transmitters, Antennas & IPTV Solutions',
-  url: 'https://www.iptv-demo.example.com/products/',
-  description: 'Browse our complete broadcast equipment lineup: FM/AM/TV transmitters, antennas, cavity filters, combiners, IPTV systems, fiber optics and RF accessories.',
-  isPartOf: { '@type': 'WebSite', name: 'IPTVStream', url: 'https://www.iptv-demo.example.com' },
+const short = (s, n) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
+
+// ---------- categories (real counts, biggest first) ----------
+const CATS = Object.entries(CAT_NAMES)
+  .map(([id, label]) => ({ id, label, count: PRODUCTS.filter((p) => p.category === id).length }))
+  .filter((c) => c.count > 0)
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+const TOTAL = PRODUCTS.length;
+const CAT_COUNT = CATS.length;
+const DATASHEET_COUNT = PRODUCTS.filter((p) => p.source_pdf).length;
+
+// ---------- card-level derived data ----------
+// model: leading token of the product name (e.g. "FUQ4339KN V2 Network Encoder 48 HDMI" -> FUQ4339KN)
+const modelOf = (p) => {
+  const parts = String(p.name || '').trim().split(/\s+/);
+  const first = parts[0] || '';
+  const second = parts[1] || '';
+  const m = first.length >= 3 ? first : `${first} ${second}`.trim();
+  return m.replace(/[,;]$/, '');
 };
 
-// 按分类分组
-const categories = [...new Set(PRODUCTS.map((p) => p.category))];
-const catNames = CAT_NAMES;
+// up to two short, comparable specs for the card face (prefers the specs buyers scan for)
+const SPEC_PRIORITY = ['input', 'output', 'channel', 'capacity', 'resolution', 'frequency', 'standard', 'interface', 'format', 'rate', 'modulation', 'encoding'];
+const teasersOf = (p) =>
+  Object.entries(p.specs || {})
+    .filter(([k, v]) => v && String(k).length <= 28 && String(v).length <= 58)
+    .map(([k, v]) => {
+      const lk = k.toLowerCase();
+      const rank = SPEC_PRIORITY.findIndex((s) => lk.includes(s));
+      return { k: short(k.replace(/\s*[:]\s*$/, ''), 20), v: short(v, 34), rank: rank === -1 ? 99 : rank };
+    })
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 2);
 
-// 图片尺寸 helper：卡片用 400px WebP 缩略图
-const thumbOf = (img) => (img || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp');
+const CARDS = PRODUCTS.map((p) => {
+  const catLabel = CAT_NAMES[p.category] || p.category;
+  const specs = p.specs || {};
+  return {
+    slug: p.slug,
+    name: p.name,
+    image: (p.image || '').replace(/\.(jpg|jpeg|png)$/i, '-thumb.webp') || p.image,
+    cat: p.category,
+    catLabel,
+    model: modelOf(p),
+    specs: teasersOf(p),
+    specCount: Object.keys(specs).length,
+    hasPdf: !!p.source_pdf,
+    // lower-cased blob the client filters against (name + model + category + every spec key/value)
+    hay: short(
+      [p.name, modelOf(p), catLabel, ...Object.entries(specs).flatMap(([k, v]) => [k, short(v, 48)])].join(' '),
+      460
+    ).toLowerCase(),
+  };
+});
+
+const PAGE_TITLE = 'Broadcast Equipment Catalogue - 191 Encoders, Modulators, IP Gateways | IPTVStream';
+const PAGE_DESC =
+  '191 digital TV headend devices: HDMI/SDI/IP encoders, DVB-T/C/ISDB-T/QAM modulators, IP gateways, IRDs, multiplexers, DVB-T and FM transmitters. Datasheet for every model.';
+
+const SITE = 'https://www.iptv-demo.example.com';
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Broadcast Equipment Catalogue',
+    url: `${SITE}/products/`,
+    description: PAGE_DESC,
+    isPartOf: { '@type': 'WebSite', name: 'IPTVStream', url: SITE },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: TOTAL,
+      itemListElement: PRODUCTS.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: p.name,
+        url: `${SITE}/products/${p.slug}/`,
+      })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Products', item: `${SITE}/products/` },
+    ],
+  },
+];
 
 const breadcrumbs = [{ name: 'Products', url: '/products/' }];
 ---
 
-<Layout
-  title="Broadcast Equipment — Transmitters, Antennas & IPTV Solutions | IPTVStream"
-  description="Explore our broadcast equipment lineup: FM, AM and TV transmitters, broadcast antennas, cavity filters, combiners, IPTV gateways, fiber optics and RF accessories from 50W to 200KW."
-  schema={productSchema}
-  breadcrumbs={breadcrumbs}
->
-  <!-- ===== 页面标题 ===== -->
-  <section class="relative bg-[#f5f5f7] py-16 lg:py-24 text-center border-b border-[#e8e8ed] overflow-hidden" aria-label="Products overview">
-    <img src="/images/general/channels-banner.jpg" alt="" aria-hidden="true" loading="lazy"
-      class="absolute inset-0 w-full h-full object-cover opacity-[0.05]" />
-    <div class="relative container mx-auto max-w-3xl px-4">
-      <p class="text-[#86868b] text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Products</p>
-      <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">Complete <span class="gradient-text">Broadcast</span> Equipment Lineup</h1>
-      <p class="text-[#6e6e73] text-lg">FM/AM/TV transmitters, antennas, IPTV systems and RF accessories — {PRODUCTS.length}+ products from 0.5W to 200KW.</p>
-    </div>
-  </section>
-
-  <!-- ===== 分类锚点导航 ===== -->
-  <section class="bg-white border-b border-[#e8e8ed] sticky top-[72px] z-30" aria-label="Category quick nav">
-    <div class="container mx-auto max-w-7xl px-4 py-3 overflow-x-auto">
-      <div class="flex gap-2 min-w-max">
-        {
-          categories.map((cat) => (
-            <a href={`#cat-${cat}`} class="shrink-0 text-xs font-semibold text-[#6e6e73] bg-[#f5f5f7] border border-[#e8e8ed] hover:border-[#0071e3] hover:text-[#0071e3] px-4 py-2 rounded-full transition-colors">
-              {CAT_NAMES[cat] || cat} ({PRODUCTS.filter((p) => p.category === cat).length})
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 数据统计条 ===== -->
-  <section class="bg-white border-b border-[#e8e8ed]" aria-label="Product statistics">
+<Layout title={PAGE_TITLE} description={PAGE_DESC} schema={schema} breadcrumbs={breadcrumbs}>
+  <!-- ===== compact hero ===== -->
+  <section class="bg-white pt-10 pb-8 lg:pt-14 lg:pb-10" aria-label="Catalogue introduction">
     <div class="container mx-auto max-w-7xl px-4">
-      <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-[#e8e8ed]">
-        {
-          [
-            { num: `${PRODUCTS.length}+`, label: 'Products in Stock' },
-            { num: `${categories.length}`, label: 'Product Categories' },
-            { num: '50+', label: 'Countries Served' },
-            { num: '24h', label: 'Quote Response' },
-          ].map((s) => (
-            <div class="py-8 text-center">
-              <p class="text-2xl lg:text-3xl font-bold text-[#1d1d1f]">{s.num}</p>
-              <p class="text-xs text-[#86868b] mt-1">{s.label}</p>
-            </div>
-          ))
-        }
+      <p class="pc-eyebrow">Product catalogue</p>
+      <h1 class="mt-3 text-[38px] lg:text-[60px] font-bold leading-[1.06] tracking-tight text-[#1d1d1f]">
+        Complete Broadcast<br class="hidden lg:block" /> Equipment Lineup
+      </h1>
+      <p class="mt-5 max-w-3xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+        {TOTAL} headend devices across {CAT_COUNT} categories — HDMI/SDI and IP encoders, DVB-T/C/ISDB-T/QAM
+        modulators, encoder-modulators, IP gateways, IRDs, multiplexers and scramblers, DVB-T and FM broadcast
+        transmitters, plus EPG and IPTV server software. Every model ships with a full datasheet.
+      </p>
+      <dl class="pc-facts">
+        <div><dt>Models</dt><dd>{TOTAL}</dd></div>
+        <div><dt>Categories</dt><dd>{CAT_COUNT}</dd></div>
+        <div><dt>Datasheets</dt><dd>{DATASHEET_COUNT}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ===== sticky filter toolbar ===== -->
+  <section class="pc-toolbar" aria-label="Filter the catalogue">
+    <div class="container mx-auto max-w-7xl px-4 py-3">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+        <label class="pc-search">
+          <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="pc-q" type="search" autocomplete="off" placeholder={`Search ${TOTAL} models — name, model number or spec`} aria-label="Search models" />
+        </label>
+        <div class="flex items-center justify-between gap-3 lg:justify-end">
+          <span id="pc-count" class="text-[13px] font-medium text-[#86868b]" role="status" aria-live="polite">Showing {TOTAL} of {TOTAL} models</span>
+          <label class="pc-sort">
+            <span>Sort</span>
+            <select id="pc-sort" aria-label="Sort models">
+              <option value="model">Model A–Z</option>
+              <option value="model-desc">Model Z–A</option>
+              <option value="cat">Category</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="pc-cats" class="pc-chips" role="group" aria-label="Filter by category">
+        <button type="button" class="pc-chip on" data-c="all">All models <b>{TOTAL}</b></button>
+        {CATS.map((c) => (
+          <button type="button" class="pc-chip" data-c={c.id}>{c.label} <b>{c.count}</b></button>
+        ))}
       </div>
     </div>
   </section>
 
-  <!-- ===== 分类产品区 ===== -->
-  <section class="py-16 lg:py-24 bg-white" aria-label="All products by category">
-    <div class="container mx-auto max-w-7xl px-4 space-y-20">
-      {
-        categories.map((cat) => {
-          const items = PRODUCTS.filter((p) => p.category === cat);
-          return (
-            <div id={`cat-${cat}`}>
-              <div class="flex items-end justify-between mb-8 reveal">
-                <div>
-                  <h2 class="text-2xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight">{CAT_NAMES[cat] || cat}</h2>
-                  <p class="text-[#86868b] text-sm mt-1">{items.length} products</p>
+  <!-- ===== card grid (all models are in the HTML for search engines) ===== -->
+  <section class="bg-white py-10 lg:py-14" aria-label="All models">
+    <div class="container mx-auto max-w-7xl px-4">
+      <div id="pc-grid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
+        {
+          CARDS.map((p) => (
+            <article class="pc-card" data-c={p.cat} data-m={p.model} data-n={p.name.toLowerCase()} data-s={p.hay}>
+              <a href={`/products/${p.slug}/`} class="pc-card-link" aria-label={p.name}>
+                <div class="pc-thumb">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
+                  ) : (
+                    <i class="fas fa-tower-broadcast" aria-hidden="true"></i>
+                  )}
                 </div>
-              </div>
-              <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {
-                  items.map((p) => (
-                    <a href={`/products/${p.slug}/`} class="group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-shadow reveal">
-                      <div class="bg-[#f5f5f7] aspect-[4/3] flex items-center justify-center overflow-hidden">
-                        {
-                          p.image ? (
-                            <img src={thumbOf(p.image)} alt={p.name} loading="lazy"
-                              class="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105" />
-                          ) : (
-                            <i class="fas fa-tower-broadcast text-4xl text-[#a1a1a6] group-hover:text-[#0071e3] transition-colors"></i>
-                          )
-                        }
-                      </div>
-                      <div class="p-5">
-                        <span class="text-[11px] font-medium text-[#86868b] uppercase tracking-wide">{catNames[p.category] || p.category}</span>
-                        <h3 class="font-semibold text-[#1d1d1f] text-sm leading-snug mt-1.5 mb-3 group-hover:text-[#0071e3] transition-colors line-clamp-2">{p.name}</h3>
-                        <span class="inline-flex items-center gap-1.5 text-[#0071e3] text-xs font-medium">
-                          View Details <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
-                        </span>
-                      </div>
-                    </a>
-                  ))
-                }
-              </div>
-            </div>
-          );
-        })
-      }
+                <div class="pc-body">
+                  <div class="pc-meta">
+                    <span class="pc-cat">{p.catLabel}</span>
+                    {p.hasPdf && <span class="pc-badge"><i class="fas fa-file-pdf" aria-hidden="true"></i> Datasheet</span>}
+                  </div>
+                  <h2 class="pc-name">{p.name}</h2>
+                  {p.specs.length > 0 && (
+                    <ul class="pc-specs">
+                      {p.specs.map((s) => (
+                        <li><span>{s.k}</span> {s.v}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <span class="pc-more">
+                    {p.specCount > 0 ? `${p.specCount} specs` : 'Full details'}
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                  </span>
+                </div>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+
+      <!-- no-match panel (shown by the filter script only) -->
+      <div id="pc-empty" class="pc-empty" hidden>
+        <i class="fas fa-circle-info" aria-hidden="true"></i>
+        <p>No models match that search.</p>
+        <button type="button" id="pc-clear" class="pc-clear">Clear filters</button>
+      </div>
     </div>
   </section>
 
-  <!-- ===== CTA ===== -->
-  <section class="py-16 lg:py-20 bg-[#f5f5f7]" aria-label="Get a quote">
-    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
-      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Need a Custom <span class="gradient-text">Solution?</span></h2>
-      <p class="text-[#6e6e73] text-lg mb-8">Tell us your requirements and we'll recommend the right products for your project.</p>
-      <a href="/contact/" class="btn-primary text-base px-10 py-4">
-        <i class="fas fa-paper-plane"></i> Get a Quote
+  <!-- ===== closing CTA ===== -->
+  <section class="bg-[#f5f5f7] py-16 lg:py-20" aria-label="Request a quote">
+    <div class="container mx-auto max-w-4xl px-4 text-center">
+      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight text-[#1d1d1f]">Not sure which model fits your headend?</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-lg text-[#6e6e73]">
+        Send us the channel count, input format and output standard — we will come back with a model list, a
+        channel plan and factory-direct pricing.
+      </p>
+      <a href="/contact/" class="btn-primary mt-8 text-base px-10 py-4">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Request a quote
       </a>
     </div>
   </section>
+
+  <style is:global>
+    .pc-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #0071e3;
+    }
+    .pc-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 2.5rem;
+      margin-top: 1.5rem;
+    }
+    .pc-facts div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+    }
+    .pc-facts dt {
+      font-size: 12.5px;
+      color: #86868b;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .pc-facts dd {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    /* ---- sticky toolbar ---- */
+    .pc-toolbar {
+      position: sticky;
+      top: 72px;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.9);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-top: 1px solid #e8e8ed;
+      border-bottom: 1px solid #e8e8ed;
+    }
+    .pc-search {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex: 1 1 auto;
+      background: #f5f5f7;
+      border: 1px solid #e8e8ed;
+      border-radius: 999px;
+      padding: 0.55rem 1rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .pc-search:focus-within {
+      border-color: #0071e3;
+      background: #fff;
+    }
+    .pc-search i {
+      color: #86868b;
+      font-size: 13px;
+    }
+    .pc-search input {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 14.5px;
+      color: #1d1d1f;
+    }
+    .pc-search input::placeholder {
+      color: #a1a1a6;
+    }
+    .pc-sort {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 12.5px;
+      color: #86868b;
+    }
+    .pc-sort select {
+      border: 1px solid #e8e8ed;
+      background: #fff;
+      border-radius: 999px;
+      padding: 0.4rem 0.7rem;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #1d1d1f;
+      cursor: pointer;
+    }
+    .pc-chips {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding-bottom: 0.15rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .pc-chips::-webkit-scrollbar {
+      display: none;
+    }
+    .pc-chip {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid #e8e8ed;
+      background: #fff;
+      color: #6e6e73;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color 0.18s, border-color 0.18s, background 0.18s;
+    }
+    .pc-chip b {
+      font-size: 11.5px;
+      font-weight: 600;
+      opacity: 0.6;
+    }
+    .pc-chip:hover {
+      border-color: #0071e3;
+      color: #0071e3;
+    }
+    .pc-chip.on {
+      background: #0071e3;
+      border-color: #0071e3;
+      color: #fff;
+    }
+    .pc-chip.on b {
+      opacity: 0.8;
+    }
+
+    /* ---- cards ---- */
+    .pc-card {
+      border: 1px solid #e8e8ed;
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.25s, transform 0.25s;
+    }
+    .pc-card:hover {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.07);
+      transform: translateY(-2px);
+    }
+    .pc-card-link {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      text-decoration: none;
+    }
+    .pc-thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 4 / 3;
+      background: #f5f5f7;
+      padding: 1.25rem;
+    }
+    .pc-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .pc-card:hover .pc-thumb img {
+      transform: scale(1.04);
+    }
+    .pc-thumb i {
+      font-size: 26px;
+      color: #a1a1a6;
+    }
+    .pc-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      gap: 0.6rem;
+      padding: 1.1rem 1.15rem 1.25rem;
+    }
+    .pc-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .pc-cat {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #86868b;
+    }
+    .pc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #0071e3;
+      border: 1px solid rgba(0, 113, 227, 0.3);
+      border-radius: 999px;
+      padding: 0.1rem 0.4rem;
+      white-space: nowrap;
+    }
+    .pc-name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #1d1d1f;
+      transition: color 0.2s;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pc-card:hover .pc-name {
+      color: #0071e3;
+    }
+    .pc-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .pc-specs li {
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: #6e6e73;
+      background: #f5f5f7;
+      border-radius: 6px;
+      padding: 0.3rem 0.5rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .pc-specs span {
+      color: #86868b;
+    }
+    .pc-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: auto;
+      padding-top: 0.35rem;
+      font-size: 12px;
+      font-weight: 500;
+      color: #0071e3;
+    }
+    .pc-more i {
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+    .pc-card:hover .pc-more i {
+      transform: translateX(3px);
+    }
+
+    /* ---- no-match panel ---- */
+    .pc-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 4rem 1rem;
+      text-align: center;
+      color: #6e6e73;
+    }
+    .pc-empty[hidden] {
+      display: none;
+    }
+    .pc-empty i {
+      font-size: 22px;
+      color: #a1a1a6;
+    }
+    .pc-empty p {
+      font-size: 16px;
+    }
+    .pc-clear {
+      border: 1px solid #e8e8ed;
+      background: #fff;
+      border-radius: 999px;
+      padding: 0.5rem 1.1rem;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0071e3;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .pc-clear:hover {
+      border-color: #0071e3;
+    }
+
+    @media (max-width: 640px) {
+      .pc-body {
+        padding: 0.95rem 1rem 1.1rem;
+      }
+      .pc-facts {
+        gap: 0.4rem 1.5rem;
+      }
+    }
+  </style>
+
+  <script is:inline define:vars={{ TOTAL, CAT_ORDER: CATS.map((c) => c.id) }}>
+    (function () {
+      var grid = document.getElementById('pc-grid');
+      if (!grid) return;
+      var cards = [].slice.call(grid.querySelectorAll('.pc-card'));
+      var q = document.getElementById('pc-q');
+      var chips = document.getElementById('pc-cats');
+      var countEl = document.getElementById('pc-count');
+      var sortSel = document.getElementById('pc-sort');
+      var empty = document.getElementById('pc-empty');
+      var clearBtn = document.getElementById('pc-clear');
+      var state = { q: '', cat: 'all', sort: 'model' };
+      var timer;
+
+      function readUrl() {
+        var u = new URLSearchParams(location.search);
+        state.q = u.get('q') || '';
+        state.cat = u.get('cat') || 'all';
+        state.sort = u.get('sort') || 'model';
+      }
+      function writeUrl() {
+        var u = new URLSearchParams();
+        if (state.q) u.set('q', state.q);
+        if (state.cat !== 'all') u.set('cat', state.cat);
+        if (state.sort !== 'model') u.set('sort', state.sort);
+        var s = u.toString();
+        history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+      }
+      function apply() {
+        var needle = state.q.trim().toLowerCase();
+        var shown = 0;
+        cards.forEach(function (c) {
+          var okCat = state.cat === 'all' || c.getAttribute('data-c') === state.cat;
+          var okQ = !needle || (c.getAttribute('data-n') + ' ' + (c.getAttribute('data-s') || '')).indexOf(needle) > -1;
+          var vis = okCat && okQ;
+          c.style.display = vis ? '' : 'none';
+          if (vis) shown++;
+        });
+        countEl.textContent = 'Showing ' + shown + ' of ' + TOTAL + ' models';
+        if (empty) empty.hidden = shown > 0;
+        if (chips) {
+          [].slice.call(chips.querySelectorAll('.pc-chip')).forEach(function (b) {
+            b.classList.toggle('on', b.getAttribute('data-c') === state.cat);
+          });
+        }
+      }
+      function sortNow() {
+        var arr = cards.slice();
+        var byModel = function (a, b) {
+          return String(a.getAttribute('data-m')).localeCompare(String(b.getAttribute('data-m')), 'en', { numeric: true });
+        };
+        if (state.sort === 'model-desc') arr.sort(function (a, b) { return byModel(b, a); });
+        else if (state.sort === 'cat')
+          arr.sort(function (a, b) {
+            return CAT_ORDER.indexOf(a.getAttribute('data-c')) - CAT_ORDER.indexOf(b.getAttribute('data-c')) || byModel(a, b);
+          });
+        else arr.sort(byModel);
+        var frag = document.createDocumentFragment();
+        arr.forEach(function (c) { frag.appendChild(c); });
+        grid.appendChild(frag);
+      }
+
+      if (q)
+        q.addEventListener('input', function () {
+          clearTimeout(timer);
+          timer = setTimeout(function () { state.q = q.value; apply(); writeUrl(); }, 180);
+        });
+      if (chips)
+        chips.addEventListener('click', function (e) {
+          var b = e.target.closest ? e.target.closest('.pc-chip') : null;
+          if (!b) return;
+          state.cat = b.getAttribute('data-c');
+          apply();
+          writeUrl();
+        });
+      if (sortSel)
+        sortSel.addEventListener('change', function () { state.sort = sortSel.value; sortNow(); apply(); writeUrl(); });
+      if (clearBtn)
+        clearBtn.addEventListener('click', function () {
+          state = { q: '', cat: 'all', sort: 'model' };
+          if (q) q.value = '';
+          if (sortSel) sortSel.value = 'model';
+          sortNow();
+          apply();
+          writeUrl();
+        });
+
+      readUrl();
+      if (q) q.value = state.q;
+      if (sortSel) sortSel.value = state.sort;
+      sortNow();
+      apply();
+
+      // the fixed header carries its own search box (injected after load) - keep the two in sync
+      function bindNav() {
+        var nav = document.getElementById('nav-search-input');
+        if (!nav || nav.getAttribute('data-pc-bound') === '1') return;
+        nav.setAttribute('data-pc-bound', '1');
+        nav.addEventListener('input', function () {
+          clearTimeout(timer);
+          timer = setTimeout(function () {
+            state.q = nav.value;
+            if (q) q.value = nav.value;
+            apply();
+            writeUrl();
+          }, 180);
+        });
+      }
+      bindNav();
+      setInterval(bindNav, 600);
+      if (window.jQuery) jQuery(document).on('component:loaded', bindNav);
+    })();
+  </script>
 </Layout>
