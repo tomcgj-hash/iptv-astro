@@ -144,7 +144,7 @@ const breadcrumbs = [{ name: 'Contact Us', url: '/contact/' }];
                 var data = await resp.json();
                 if (data.success) {
                   status.className = 'mt-4 text-sm font-medium text-[#248a3d]';
-                  status.textContent = '✓ Message sent! We will reply within 24 hours.';
+                  status.textContent = '✓ Message sent. We will come back to you with the model details.';
                   form.reset();
                 } else {
                   status.className = 'mt-4 text-sm font-medium text-[#c93400]';

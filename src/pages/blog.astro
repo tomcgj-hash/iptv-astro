@@ -1,83 +1,93 @@
 ---
+// ============================================================
+// blog.astro - article index (direction D language, single accent colour)
+// Rewritten 2026-09-14: the previous version used five different category
+// palettes (blue/green/orange/purple/pink) plus gradient placeholder tiles,
+// which broke the one-accent rule the rest of the site follows, and the chips
+// were styled differently from the catalogue filters. Everything now uses the
+// Apple-blue accent, real article images, and the same card language as
+// /products/ and the solution blocks.
+// ============================================================
 import Layout from '../layouts/Layout.astro';
 import { getPosts } from '../data/posts';
 
+const SITE = 'https://www.iptv-demo.example.com';
 const posts = getPosts();
-
-const blogSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Blog',
-  name: 'FMUSER Blog',
-  url: 'https://www.iptv-demo.example.com/blog/',
-  description: 'Guides and expert advice on IPTV services, setup tutorials, broadcast equipment and industry insights.',
-  publisher: { '@type': 'Organization', name: 'FMUSER', url: 'https://www.iptv-demo.example.com' },
-};
-
-const breadcrumbs = [{ name: 'Blog', url: '/blog/' }];
-
-// 分类配色（Apple 蓝系克制渐变）
-const catStyle = {
-  'IPTV Guide': { badge: 'bg-[#0071e3]/10 text-[#0071e3]', grad: 'from-[#0071e3] to-[#0a84ff]', icon: 'fas fa-tv' },
-  'Setup Guide': { badge: 'bg-[#34c759]/10 text-[#248a3d]', grad: 'from-[#34c759] to-[#30d158]', icon: 'fas fa-plug' },
-  'Troubleshooting': { badge: 'bg-[#ff9f0a]/10 text-[#c93400]', grad: 'from-[#ff9f0a] to-[#ffb340]', icon: 'fas fa-wrench' },
-  'Business': { badge: 'bg-[#5e5ce6]/10 text-[#5e5ce6]', grad: 'from-[#5e5ce6] to-[#7d7aff]', icon: 'fas fa-briefcase' },
-  'Broadcast Equipment': { badge: 'bg-[#ff375f]/10 text-[#d70015]', grad: 'from-[#ff375f] to-[#ff6b81]', icon: 'fas fa-tower-broadcast' },
-};
-const defCat = { badge: 'bg-[#0071e3]/10 text-[#0071e3]', grad: 'from-[#0071e3] to-[#0a84ff]', icon: 'fas fa-file-lines' };
-const catOf = (name) => catStyle[name] || defCat;
 const categories = [...new Set(posts.map((p) => p.category))];
 const featured = posts[0];
 const rest = posts.slice(1);
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'FMUSER Blog',
+    url: `${SITE}/blog/`,
+    description:
+      'Guides on digital TV headend equipment, IPTV systems for hotels, FM and DVB-T transmission, and choosing the right model.',
+    publisher: { '@type': 'Organization', name: 'FMUSER', url: SITE },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE}/blog/` },
+    ],
+  },
+];
+
+const breadcrumbs = [{ name: 'Blog', url: '/blog/' }];
 ---
 
 <Layout
-  title="Blog — IPTV Guides, Setup Tutorials & Broadcast Tips | FMUSER"
-  description="Expert guides on choosing IPTV services, setting up IPTV on Fire Stick and Smart TV, troubleshooting buffering, hotel IPTV systems and FM broadcast equipment."
-  schema={blogSchema}
+  title="Blog - Headend, IPTV and Transmission Guides | FMUSER"
+  description="Guides on digital TV headend design, hotel IPTV systems, FM and DVB-T transmission and how to pick the right model - written from the datasheets and from real projects."
+  schema={schema}
   breadcrumbs={breadcrumbs}
 >
-  <!-- ===== 页面标题 ===== -->
-  <section class="bg-[#f5f5f7] py-16 lg:py-24 text-center border-b border-[#e8e8ed]" aria-label="Blog overview">
-    <div class="container mx-auto max-w-3xl px-4">
-      <p class="text-[#0071e3] text-sm font-semibold tracking-[0.2em] uppercase mb-4">Our Blog</p>
-      <h1 class="text-4xl lg:text-6xl font-bold text-[#1d1d1f] tracking-tight mb-5">Guides, Tips & <span class="gradient-text">Expert Advice</span></h1>
-      <p class="text-[#6e6e73] text-lg">Everything you need to know about IPTV services, setup, troubleshooting and broadcast equipment.</p>
+  <!-- ===== hero ===== -->
+  <section class="bg-white pt-10 pb-8 lg:pt-14 lg:pb-10" aria-label="Blog introduction">
+    <div class="container mx-auto max-w-7xl px-4">
+      <p class="bl-eyebrow">Blog</p>
+      <h1 class="mt-3 text-[38px] lg:text-[58px] font-bold leading-[1.07] tracking-tight text-[#1d1d1f]">
+        Guides, tips &amp; expert advice
+      </h1>
+      <p class="mt-5 max-w-3xl text-base lg:text-lg leading-relaxed text-[#6e6e73]">
+        How the equipment is actually used: headend chains, IPTV for hotels and hospitals, FM and DVB-T transmission,
+        and the questions that come up when you specify a model. Written from the datasheets and from projects —
+        no listicles.
+      </p>
+      <dl class="bl-facts">
+        <div><dt>Articles</dt><dd>{posts.length}</dd></div>
+        <div><dt>Topics</dt><dd>{categories.length}</dd></div>
+      </dl>
     </div>
   </section>
 
-  <!-- ===== 置顶精选大卡（最新文章） ===== -->
+  <!-- ===== featured ===== -->
   {
     featured && (
-      <section class="pt-14 lg:pt-20 bg-white" aria-label="Featured article">
+      <section class="bg-white pb-4" aria-label="Featured article" id="blog-featured" data-category={featured.category}>
         <div class="container mx-auto max-w-7xl px-4">
-          <a href={`/blog/${featured.slug}/`} class="group block bg-gradient-to-br from-[#1d1d1f] to-[#3a3a3c] rounded-3xl overflow-hidden reveal">
-            <div class="grid lg:grid-cols-2 items-stretch">
-              <div class="p-10 lg:p-14 flex flex-col justify-center">
-                <div class="flex items-center gap-3 mb-5">
-                  <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/15 text-white">
-                    <i class="fas fa-star text-xs"></i> Featured
-                  </span>
-                  <span class={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${catOf(featured.category).badge}`}>
-                    <i class={`${catOf(featured.category).icon} text-xs`}></i>{featured.category}
-                  </span>
-                </div>
-                <h2 class="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight mb-4 group-hover:text-[#64d2ff] transition-colors">
-                  {featured.title}
-                </h2>
-                <p class="text-white/70 text-lg leading-relaxed mb-7 line-clamp-3">{featured.excerpt}</p>
-                <div class="flex items-center gap-5 text-white/60 text-sm">
-                  <span><i class="far fa-calendar mr-2"></i>{featured.date}</span>
-                  <span><i class="far fa-clock mr-2"></i>{featured.readTime}</span>
-                </div>
-                <span class="inline-flex items-center gap-2 mt-8 text-white font-semibold">
-                  Read Article <i class="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1.5"></i>
-                </span>
+          <a href={`/blog/${featured.slug}/`} class="bl-featured group">
+            <div class="bl-featured-copy">
+              <div class="bl-featured-meta">
+                <span class="bl-badge"><i class="fas fa-star" aria-hidden="true"></i> Latest</span>
+                <span class="bl-cat">{featured.category}</span>
               </div>
-              <div class="relative min-h-[280px] lg:min-h-0">
-                <img src={`/images/blog/${featured.slug}.jpg`} alt={featured.title} loading="eager"
-                  class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" />
-                <div class="absolute inset-0 bg-gradient-to-r from-[#1d1d1f] via-[#1d1d1f]/30 to-transparent lg:bg-gradient-to-r"></div>
+              <h2 class="bl-featured-title">{featured.title}</h2>
+              <p class="bl-featured-excerpt">{featured.excerpt}</p>
+              <div class="bl-featured-info">
+                <span><i class="far fa-calendar" aria-hidden="true"></i>{featured.date}</span>
+                <span><i class="far fa-clock" aria-hidden="true"></i>{featured.readTime}</span>
               </div>
+              <span class="bl-featured-cta">
+                Read the article <i class="fas fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+            <div class="bl-featured-media">
+              <img src={`/images/blog/${featured.slug}.jpg`} alt={featured.title} loading="eager" decoding="async" />
             </div>
           </a>
         </div>
@@ -85,101 +95,396 @@ const rest = posts.slice(1);
     )
   }
 
-  <!-- ===== 分类筛选 + 文章网格 ===== -->
-  <section class="py-14 lg:py-20 bg-white" aria-label="Blog posts">
+  <!-- ===== filters + grid ===== -->
+  <section class="bg-white pt-8 pb-14 lg:pt-10 lg:pb-20" aria-label="All articles">
     <div class="container mx-auto max-w-7xl px-4">
-      <!-- 分类筛选 -->
-      <div class="flex flex-wrap items-center gap-2.5 mb-10 justify-center" id="blog-filters">
-        <button type="button" data-filter="all" class="blog-filter shrink-0 text-sm font-semibold text-white bg-[#1d1d1f] px-5 py-2 rounded-full transition-colors">
-          All Articles <span class="opacity-70 ml-1">({posts.length})</span>
+      <div class="bl-chips" id="blog-filters" role="group" aria-label="Filter articles by topic">
+        <button type="button" data-filter="all" class="bl-chip on">
+          All articles <b>{posts.length}</b>
         </button>
-        {
-          categories.map((c) => (
-            <button type="button" data-filter={c} class="blog-filter shrink-0 text-sm font-semibold text-[#6e6e73] bg-[#f5f5f7] hover:bg-[#e8e8ed] px-5 py-2 rounded-full transition-colors">
-              {c} <span class="opacity-60 ml-1">({posts.filter((p) => p.category === c).length})</span>
-            </button>
-          ))
-        }
+        {categories.map((c) => (
+          <button type="button" data-filter={c} class="bl-chip">
+            {c} <b>{posts.filter((p) => p.category === c).length}</b>
+          </button>
+        ))}
       </div>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="blog-grid">
-        {
-          rest.map((post, i) => {
-            const cs = catOf(post.category);
-            return (
-              <article data-category={post.category} class="blog-card group bg-white rounded-3xl border border-[#e8e8ed] overflow-hidden hover:shadow-xl hover:shadow-[#1d1d1f]/5 hover:-translate-y-1 transition-all duration-300 reveal flex flex-col">
-                <a href={`/blog/${post.slug}/`} class="block overflow-hidden aspect-[16/10] relative">
-                  {
-                    i % 3 === 0 ? (
-                      // 交替样式 1：渐变图标卡（无图）
-                      <div class={`w-full h-full bg-gradient-to-br ${cs.grad} opacity-90 flex items-center justify-center group-hover:opacity-100 transition-opacity`}>
-                        <i class={`${cs.icon} text-6xl text-white/90`}></i>
-                      </div>
-                    ) : (
-                      <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} loading="lazy"
-                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    )
-                  }
-                  <span class="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/95 backdrop-blur shadow-sm">
-                    <i class={`${cs.icon} text-xs ${cs.badge.split(' ')[1]}`}></i>{post.category}
-                  </span>
-                </a>
-                <div class="p-6 flex flex-col flex-1">
-                  <div class="flex items-center gap-3 mb-3 text-xs text-[#86868b]">
-                    <span><i class="far fa-calendar mr-1.5"></i>{post.date}</span>
-                    <span><i class="far fa-clock mr-1.5"></i>{post.readTime}</span>
-                  </div>
-                  <h2 class="text-lg font-semibold text-[#1d1d1f] mb-2 tracking-tight leading-snug line-clamp-2">
-                    <a href={`/blog/${post.slug}/`} class="group-hover:text-[#0071e3] transition-colors">{post.title}</a>
-                  </h2>
-                  <p class="text-sm text-[#6e6e73] leading-relaxed line-clamp-3 mb-5">{post.excerpt}</p>
-                  <div class="mt-auto">
-                    <a href={`/blog/${post.slug}/`} class="inline-flex items-center gap-2 text-[#0071e3] text-sm font-semibold">
-                      Read More <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-                    </a>
-                  </div>
+      <div class="bl-grid" id="blog-grid">
+        {rest.map((post) => (
+          <article data-category={post.category} class="bl-card">
+            <a href={`/blog/${post.slug}/`} class="bl-card-link">
+              <div class="bl-thumb">
+                <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} loading="lazy" decoding="async" />
+              </div>
+              <div class="bl-body">
+                <span class="bl-cat">{post.category}</span>
+                <h2 class="bl-title">{post.title}</h2>
+                <p class="bl-excerpt">{post.excerpt}</p>
+                <div class="bl-info">
+                  <span><i class="far fa-calendar" aria-hidden="true"></i>{post.date}</span>
+                  <span><i class="far fa-clock" aria-hidden="true"></i>{post.readTime}</span>
                 </div>
-              </article>
-            );
-          })
-        }
+                <span class="bl-more">
+                  Read more <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </span>
+              </div>
+            </a>
+          </article>
+        ))}
       </div>
+
+      <p id="blog-empty" class="bl-empty" hidden>No articles in that topic yet.</p>
     </div>
   </section>
 
   <!-- ===== CTA ===== -->
-  <section class="py-16 lg:py-20 bg-[#f5f5f7]" aria-label="Subscribe or contact">
-    <div class="container mx-auto max-w-4xl px-4 text-center reveal">
-      <h2 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-4">Questions About <span class="gradient-text">IPTV?</span></h2>
-      <p class="text-[#6e6e73] text-lg mb-8">Can't find the answer in our guides? Our team is here to help.</p>
-      <a href="/contact/" class="btn-primary text-base px-10 py-4">
-        <i class="fas fa-comments"></i> Contact Us
+  <section class="bg-[#f5f5f7] py-16 lg:py-20" aria-label="Ask a technical question">
+    <div class="container mx-auto max-w-4xl px-4 text-center">
+      <h2 class="text-3xl lg:text-4xl font-bold tracking-tight text-[#1d1d1f]">Question the guides do not answer?</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-lg text-[#6e6e73]">
+        Send the model or the channel plan and our engineers will answer with the datasheet in hand.
+      </p>
+      <a href="/contact/" class="btn-primary mt-8 text-base px-10 py-4">
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> Ask an engineer
       </a>
     </div>
   </section>
 
-  <!-- 分类筛选交互（原生 JS） -->
+  <style is:global>
+    .bl-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #0071e3;
+    }
+    .bl-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 2.5rem;
+      margin-top: 1.4rem;
+    }
+    .bl-facts div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+    }
+    .bl-facts dt {
+      font-size: 12.5px;
+      color: #86868b;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .bl-facts dd {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    /* ---- featured ---- */
+    .bl-featured {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      background: #1d1d1f;
+      border-radius: 22px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .bl-featured:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+    }
+    @media (min-width: 1024px) {
+      .bl-featured {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+    }
+    .bl-featured-copy {
+      padding: 2.25rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (min-width: 1024px) {
+      .bl-featured-copy {
+        padding: 3.25rem 3rem;
+      }
+    }
+    .bl-featured-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.1rem;
+    }
+    .bl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 0.28rem 0.7rem;
+    }
+    .bl-cat {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #86868b;
+    }
+    .bl-featured-meta .bl-cat {
+      color: #5ac8fa;
+    }
+    .bl-featured-title {
+      font-size: 26px;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+      transition: color 0.2s;
+    }
+    @media (min-width: 1024px) {
+      .bl-featured-title {
+        font-size: 36px;
+      }
+    }
+    .bl-featured:hover .bl-featured-title {
+      color: #64d2ff;
+    }
+    .bl-featured-excerpt {
+      margin-top: 1rem;
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.72);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .bl-featured-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.4rem;
+      margin-top: 1.35rem;
+      font-size: 13.5px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .bl-featured-info i {
+      margin-right: 0.45rem;
+    }
+    .bl-featured-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.6rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .bl-featured-cta i {
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+    .bl-featured:hover .bl-featured-cta i {
+      transform: translateX(4px);
+    }
+    .bl-featured-media {
+      position: relative;
+      min-height: 240px;
+      overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+      .bl-featured-media {
+        min-height: 100%;
+      }
+    }
+    .bl-featured-media img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.7s;
+    }
+    .bl-featured:hover .bl-featured-media img {
+      transform: scale(1.04);
+    }
+
+    /* ---- filter chips ---- */
+    .bl-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.8rem;
+    }
+    .bl-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid #e8e8ed;
+      background: #fff;
+      color: #6e6e73;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color 0.18s, border-color 0.18s, background 0.18s;
+    }
+    .bl-chip b {
+      font-size: 11.5px;
+      font-weight: 600;
+      opacity: 0.6;
+    }
+    .bl-chip:hover {
+      border-color: #0071e3;
+      color: #0071e3;
+    }
+    .bl-chip.on {
+      background: #0071e3;
+      border-color: #0071e3;
+      color: #fff;
+    }
+    .bl-chip.on b {
+      opacity: 0.85;
+    }
+
+    /* ---- grid ---- */
+    .bl-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    @media (min-width: 640px) {
+      .bl-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .bl-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .bl-card {
+      border: 1px solid #e8e8ed;
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.25s, transform 0.25s;
+    }
+    .bl-card:hover {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.07);
+      transform: translateY(-2px);
+    }
+    .bl-card-link {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .bl-thumb {
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #f5f5f7;
+    }
+    .bl-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .bl-card:hover .bl-thumb img {
+      transform: scale(1.04);
+    }
+    .bl-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      padding: 1.15rem 1.2rem 1.3rem;
+    }
+    .bl-title {
+      margin-top: 0.4rem;
+      font-size: 16.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      color: #1d1d1f;
+      transition: color 0.2s;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .bl-card:hover .bl-title {
+      color: #0071e3;
+    }
+    .bl-excerpt {
+      margin-top: 0.6rem;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #6e6e73;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .bl-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.1rem;
+      margin-top: 0.9rem;
+      font-size: 12.5px;
+      color: #86868b;
+    }
+    .bl-info i {
+      margin-right: 0.4rem;
+    }
+    .bl-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: auto;
+      padding-top: 0.9rem;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0071e3;
+    }
+    .bl-more i {
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+    .bl-card:hover .bl-more i {
+      transform: translateX(3px);
+    }
+    .bl-empty {
+      padding: 3rem 1rem;
+      text-align: center;
+      font-size: 15px;
+      color: #6e6e73;
+    }
+  </style>
+
   <script is:inline>
     (function () {
-      var filters = document.querySelectorAll('.blog-filter');
-      var cards = document.querySelectorAll('.blog-card');
+      var filters = document.querySelectorAll('.blog-filter, .bl-chip');
+      var cards = document.querySelectorAll('.blog-card, .bl-card, #blog-featured');
+      var empty = document.getElementById('blog-empty');
       if (!filters.length || !cards.length) return;
       filters.forEach(function (btn) {
         btn.addEventListener('click', function () {
           var f = btn.getAttribute('data-filter');
-          // 按钮高亮
+          var shown = 0;
           filters.forEach(function (b) {
-            if (b === btn) {
-              b.className = 'blog-filter shrink-0 text-sm font-semibold text-white bg-[#1d1d1f] px-5 py-2 rounded-full transition-colors';
-            } else {
-              b.className = 'blog-filter shrink-0 text-sm font-semibold text-[#6e6e73] bg-[#f5f5f7] hover:bg-[#e8e8ed] px-5 py-2 rounded-full transition-colors';
-            }
+            b.classList.toggle('on', b === btn);
           });
-          // 卡片过滤
           cards.forEach(function (card) {
             var show = f === 'all' || card.getAttribute('data-category') === f;
             card.style.display = show ? '' : 'none';
+            if (show) shown++;
           });
+          if (empty) empty.hidden = shown > 0;
         });
       });
     })();

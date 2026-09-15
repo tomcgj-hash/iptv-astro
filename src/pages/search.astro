@@ -58,9 +58,15 @@ const suggestWords = Object.entries(wordFreq)
   schema={searchSchema}
   breadcrumbs={breadcrumbs}
 >
-  <section class="py-14 lg:py-20 bg-white min-h-[70vh]" aria-label="Site search">
+  <section class="bg-white pt-12 pb-14 lg:pt-16 lg:pb-20 min-h-[70vh]" aria-label="Site search">
     <div class="container mx-auto max-w-3xl px-4">
-      <h1 class="text-3xl lg:text-4xl font-bold text-[#1d1d1f] text-center mb-8">Search FMUSER</h1>
+      <p class="text-center text-[12px] font-semibold tracking-[0.16em] uppercase text-[#0071e3]">Search</p>
+      <h1 class="mt-3 text-[32px] lg:text-[44px] font-bold tracking-tight text-[#1d1d1f] text-center">
+        Search the catalogue and the guides
+      </h1>
+      <p class="mx-auto mt-4 mb-8 max-w-xl text-center text-[15.5px] leading-relaxed text-[#6e6e73]">
+        Models, their datasheets and every article — search by model number, specification or topic.
+      </p>
 
       <div class="bg-white rounded-2xl p-6 sm:p-8 border border-[#e8e8ed]">
         <label for="search-input" class="block text-sm font-semibold text-[#6e6e73] mb-3">Search equipment, products &amp; guides</label>
